@@ -1,0 +1,28 @@
+def arquivos_backup(request, equipamento_id):
+    """
+    Exibe a lista de arquivos de backup para o equipamento selecionado.
+    """
+    # Recupera o equipamento
+    equipamento = get_object_or_404(equipment, id=equipamento_id)
+
+    # Caminho para a pasta de backups do equipamento
+    backup_dir = os.path.join('backups', equipamento.descricao)  # Pasta específica do equipamento
+    arquivos = []
+
+    # Verifica se a pasta existe
+    if os.path.exists(backup_dir):
+        # Lista todos os arquivos na pasta
+        arquivos = os.listdir(backup_dir)
+    else:
+        arquivos = []
+
+    # Adiciona o contexto do Django Admin
+    context = {
+        'equipamento': equipamento,
+        'arquivos': arquivos,
+        'site_header': site.site_header,
+        'site_title': site.site_title,
+        'available_apps': site.get_app_list(request),  # Adiciona o contexto necessário
+    }
+
+    return render(request, 'core/arquivos_backup.html', context)

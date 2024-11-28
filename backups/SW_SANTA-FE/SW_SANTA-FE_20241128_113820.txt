@@ -1,0 +1,48 @@
+show running-config | nomore
+aaa authentication-order [ local ]
+aaa user admin
+ password $1$vULTMZLB$du9g2nKsU9nbqO7H6MGiG0
+ group admin
+!
+mpls ldp
+ lsr-id loopback-0
+  interface l3-OSPF_COLINA
+  !
+  interface l3-oSPF_SIM_COLINA
+  !
+ !
+!
+mpls l2vpn
+ vpws-group SANTA_FE
+  vpn GER_112
+   neighbor 10.255.255.30
+    pw-type vlan
+    pw-load-balance
+     flow-label both
+    !
+    pw-id 55112
+   !
+   access-interface ten-gigabit-ethernet-1/1/3
+    dot1q 112
+   !
+  !
+  vpn PPPoE_2001
+   neighbor 10.255.255.30
+    pw-type vlan
+    pw-load-balance
+     flow-label both
+    !
+    pw-id 552001
+   !
+   access-interface ten-gigabit-ethernet-1/1/3
+    dot1q 2001
+   !
+  !
+ !
+!
+snmp traps config-commit
+snmp traps cpu-core
+snmp traps cpu-load
+snmp traps link-status
+snmp traps login-success
+snmp agent enabled
