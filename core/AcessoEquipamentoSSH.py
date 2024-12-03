@@ -130,11 +130,10 @@ def capturar_prompt(conexao, prompts, tempo_maximo):
             raise Exception("Tempo limite ao capturar a mensagem inicial.")
         time.sleep(1)
 
-# Função para capturar a resposta do comando
 def capturar_resposta(conexao, prompts, tempo_maximo):
     """
     Captura a resposta do comando até encontrar um dos prompts esperados ou estourar o tempo.
-    Também detecta e lida com paginação (--More--).
+    Lida corretamente com paginação (--More--) e continua executando o comando.
     """
     resposta = ""
     inicio = time.time()
@@ -142,38 +141,41 @@ def capturar_resposta(conexao, prompts, tempo_maximo):
     while True:
         if isinstance(conexao, paramiko.Channel) and conexao.recv_ready():
             resposta_parcial = conexao.recv(4096).decode('utf-8')
-            resposta += resposta_parcial
-            print(f"Resposta parcial capturada via SSH:\n{resposta_parcial}")
 
-            # Verifica se é necessário lidar com paginação
+            # Lida com paginação e envia espaço para continuar
             if "--More--" in resposta_parcial:
                 print("Detectado '--More--', enviando espaço via SSH...")
                 conexao.send(" ")  # Envia espaço para continuar
-                time.sleep(0.5)  # Aguarda a próxima parte da resposta
-                continue
+                resposta_parcial = resposta_parcial.replace("--More--", "")  # Remove '--More--'
 
+            resposta += resposta_parcial
+            print(f"Resposta parcial capturada via SSH:\n{resposta_parcial}")
+
+            # Verifica se chegou ao fim do comando
             if any(resposta.strip().endswith(p) for p in prompts):
                 print("Comando concluído via SSH.")
                 break
 
         elif isinstance(conexao, telnetlib.Telnet):
             resposta_parcial = conexao.read_very_eager().decode('ascii')
-            resposta += resposta_parcial
-            print(f"Resposta parcial capturada via Telnet:\n{resposta_parcial}")
 
-            # Verifica se é necessário lidar com paginação
+            # Lida com paginação e envia espaço para continuar
             if "--More--" in resposta_parcial:
                 print("Detectado '--More--', enviando espaço via Telnet...")
                 conexao.write(b" ")  # Envia espaço para continuar
-                time.sleep(0.5)  # Aguarda a próxima parte da resposta
-                continue
+                resposta_parcial = resposta_parcial.replace("--More--", "")  # Remove '--More--'
 
+            resposta += resposta_parcial
+            print(f"Resposta parcial capturada via Telnet:\n{resposta_parcial}")
+
+            # Verifica se chegou ao fim do comando
             if any(resposta.strip().endswith(p) for p in prompts):
                 print("Comando concluído via Telnet.")
                 break
 
+        # Verifica tempo limite
         if time.time() - inicio > tempo_maximo:
             raise Exception("Tempo limite excedido ao aguardar resposta do equipamento.")
-        time.sleep(1)
+        time.sleep(0.5)  # Reduzido para capturar dados com mais frequência
 
     return resposta
