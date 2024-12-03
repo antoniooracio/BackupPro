@@ -39,18 +39,13 @@ def error500(request):
     return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=500)
 
 
+
 def arquivos_backup(request, equipamento_id):
     """
     Exibe a lista de arquivos de backup para o equipamento selecionado.
-    Restringe o acesso às empresas permitidas para o usuário.
+    Permite pesquisar arquivos pelo nome.
     """
-    # Recupera o equipamento
     equipamento = get_object_or_404(equipment, id=equipamento_id)
-
-    # Verifica se o usuário tem permissão para acessar o equipamento
-    if not request.user.is_superuser:
-        if not hasattr(request.user, 'empresa') or equipamento.enterprise.id != request.user.empresa.id:
-            raise Http404("Você não tem permissão para acessar os arquivos deste equipamento.")
 
     # Caminho para a pasta de backups do equipamento
     backup_dir = os.path.join('backups', equipamento.descricao)  # Pasta específica do equipamento
@@ -58,19 +53,17 @@ def arquivos_backup(request, equipamento_id):
 
     # Verifica se a pasta existe
     if os.path.exists(backup_dir):
-        # Lista todos os arquivos na pasta
         arquivos = os.listdir(backup_dir)
 
-    # Contexto para o template
-    context = {
+    # Filtra os arquivos pelo termo de pesquisa
+    query = request.GET.get('q', '').strip()
+    if query:
+        arquivos = [arquivo for arquivo in arquivos if query.lower() in arquivo.lower()]
+
+    return render(request, 'core/arquivos_backup.html', {
         'equipamento': equipamento,
         'arquivos': arquivos,
-        'site_header': site.site_header,
-        'site_title': site.site_title,
-        'available_apps': site.get_app_list(request),  # Adiciona o contexto necessário
-    }
-
-    return render(request, 'core/arquivos_backup.html', context)
+    })
 
 def download_backup(request, arquivo):
     """

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os.path
 from pathlib import Path
+from .jazmin import JAZZMIN_SETTINGS
 from telnetlib import LOGOUT
 
 from django.conf.global_settings import LOGOUT_REDIRECT_URL
@@ -35,17 +36,17 @@ ALLOWED_HOSTS = ['*'] # alterar para o nome do DNS
 # Application definition
 
 INSTALLED_APPS = [
-    'django_adminlte',
-    'django_adminlte_theme',
-
+    #'django_adminlte',
+    #'django_adminlte_theme',
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'core',
-    'core.apps.CoreConfig',  # Configuração com verbose_name para o Django Admin
+    'core',
+    #'core.apps.CoreConfig',  # Configuração com verbose_name para o Django Admin
 ]
 
 MIDDLEWARE = [
@@ -64,7 +65,7 @@ ROOT_URLCONF = 'Backup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -135,3 +136,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = ''
+
+JAZZMIN_SETTINGS = JAZZMIN_SETTINGS
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "slate",  # Tema padrão (claro)
+    "dark_mode_theme": "darkly",  # Tema para modo escuro
+}

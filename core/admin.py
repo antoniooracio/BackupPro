@@ -86,7 +86,7 @@ class equipmentAdmin(admin.ModelAdmin):
         Exibe um botão de link para acessar a página de arquivos de backup do equipamento.
         """
         url = reverse('arquivos_backup', args=[obj.id])
-        return format_html('<a class="button" href="{}">Arquivos</a>', url)
+        return format_html('<a class="btn btn-outline-warning btn-sm" href="{}">Arquivos</a>', url)
 
     arquivos_link.short_description = 'Arquivos'
     arquivos_link.allow_tags = True
