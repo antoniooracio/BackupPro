@@ -53,7 +53,10 @@ def arquivos_backup(request, equipamento_id):
 
     # Verifica se a pasta existe
     if os.path.exists(backup_dir):
-        arquivos = os.listdir(backup_dir)
+        # Lista todos os arquivos na pasta e ordena por nome
+        arquivos = sorted(os.listdir(backup_dir))
+    else:
+        arquivos = []
 
     # Filtra os arquivos pelo termo de pesquisa
     query = request.GET.get('q', '').strip()
