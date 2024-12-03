@@ -11,7 +11,7 @@ def atualizar_ultimo_backup(self):
     print(f"Data do último backup atualizada para o equipamento: {self.descricao}")
 
 # Função para acessar equipamentos genéricos
-def acessar_equipamento(id, ip, usuario, senha, porta, comando, nome_equipamento, protocolo="SSH", tempo_maximo=240):
+def acessar_equipamento(id, ip, usuario, senha, porta, comando, nome_equipamento, protocolo="SSH", tempo_maximo=60):
     """
     Acessa o equipamento e executa um comando via SSH ou Telnet.
     """
@@ -29,7 +29,7 @@ def acessar_equipamento(id, ip, usuario, senha, porta, comando, nome_equipamento
     else:
         raise ValueError(f"Protocolo inválido: {protocolo}")
 
-def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=120):
+def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=60):
     """
     Acessa o equipamento via SSH e executa comandos.
     """
@@ -37,7 +37,7 @@ def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_
     cliente.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
-        cliente.connect(ip, port=porta, username=usuario, password=senha, timeout=60)
+        cliente.connect(ip, port=porta, username=usuario, password=senha, timeout=30)
 
         # Criação do canal
         canal = cliente.invoke_shell()
@@ -69,13 +69,13 @@ def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_
     finally:
         cliente.close()
 
-def acessar_telnet(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=120):
+def acessar_telnet(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=60):
     """
     Acessa o equipamento via Telnet e executa comandos.
     """
     try:
         print(f"Conectando via Telnet ao equipamento {nome_equipamento}...")
-        cliente = telnetlib.Telnet(ip, port=porta, timeout=60)
+        cliente = telnetlib.Telnet(ip, port=porta, timeout=30)
 
         # Envia credenciais
         cliente.read_until(b"login: ", timeout=10)
@@ -134,24 +134,41 @@ def capturar_prompt(conexao, prompts, tempo_maximo):
 def capturar_resposta(conexao, prompts, tempo_maximo):
     """
     Captura a resposta do comando até encontrar um dos prompts esperados ou estourar o tempo.
+    Também detecta e lida com paginação (--More--).
     """
     resposta = ""
     inicio = time.time()
+
     while True:
         if isinstance(conexao, paramiko.Channel) and conexao.recv_ready():
             resposta_parcial = conexao.recv(4096).decode('utf-8')
             resposta += resposta_parcial
             print(f"Resposta parcial capturada via SSH:\n{resposta_parcial}")
 
-            if any(resposta_parcial.strip().endswith(p) for p in prompts):
+            # Verifica se é necessário lidar com paginação
+            if "--More--" in resposta_parcial:
+                print("Detectado '--More--', enviando espaço via SSH...")
+                conexao.send(" ")  # Envia espaço para continuar
+                time.sleep(0.5)  # Aguarda a próxima parte da resposta
+                continue
 
+            if any(resposta.strip().endswith(p) for p in prompts):
                 print("Comando concluído via SSH.")
                 break
+
         elif isinstance(conexao, telnetlib.Telnet):
             resposta_parcial = conexao.read_very_eager().decode('ascii')
             resposta += resposta_parcial
             print(f"Resposta parcial capturada via Telnet:\n{resposta_parcial}")
-            if any(resposta_parcial.strip().endswith(p) for p in prompts):
+
+            # Verifica se é necessário lidar com paginação
+            if "--More--" in resposta_parcial:
+                print("Detectado '--More--', enviando espaço via Telnet...")
+                conexao.write(b" ")  # Envia espaço para continuar
+                time.sleep(0.5)  # Aguarda a próxima parte da resposta
+                continue
+
+            if any(resposta.strip().endswith(p) for p in prompts):
                 print("Comando concluído via Telnet.")
                 break
 
