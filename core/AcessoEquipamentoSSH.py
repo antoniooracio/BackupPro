@@ -29,7 +29,7 @@ def acessar_equipamento(id, ip, usuario, senha, porta, comando, nome_equipamento
     else:
         raise ValueError(f"Protocolo inválido: {protocolo}")
 
-def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=240):
+def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=120):
     """
     Acessa o equipamento via SSH e executa comandos.
     """
@@ -49,7 +49,7 @@ def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_
 
         # Desativar paginação
         print("Desativando paginação via SSH...")
-        canal.send("terminal length 0\n")
+        #canal.send("terminal length 0\n")
         time.sleep(2)
 
         # Aguardando estabilização
@@ -69,7 +69,7 @@ def acessar_ssh(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_
     finally:
         cliente.close()
 
-def acessar_telnet(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=240):
+def acessar_telnet(id, ip, usuario, senha, porta, comando, nome_equipamento, tempo_maximo=120):
     """
     Acessa o equipamento via Telnet e executa comandos.
     """
@@ -142,7 +142,9 @@ def capturar_resposta(conexao, prompts, tempo_maximo):
             resposta_parcial = conexao.recv(4096).decode('utf-8')
             resposta += resposta_parcial
             print(f"Resposta parcial capturada via SSH:\n{resposta_parcial}")
+
             if any(resposta_parcial.strip().endswith(p) for p in prompts):
+
                 print("Comando concluído via SSH.")
                 break
         elif isinstance(conexao, telnetlib.Telnet):
