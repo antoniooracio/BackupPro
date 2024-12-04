@@ -179,3 +179,4 @@ def capturar_resposta(conexao, prompts, tempo_maximo):
         time.sleep(0.5)  # Reduzido para capturar dados com mais frequência
 
     return resposta
+

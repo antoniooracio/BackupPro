@@ -1,7 +1,6 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
-
 <!-- Formulário de pesquisa -->
 <form id="search-form" method="get" action="">
     <input
@@ -13,9 +12,11 @@
         style="margin-bottom: 20px; width: 300px; padding: 5px;"
     >
     <br>
-    <h3>  Arquivos de Backup - {{ equipamento.descricao }}</h3>
-</form>
+    <a href="/admin/core/equipment/" class="link-primary">
+        <h3>Arquivos de Backup - {{ equipamento.descricao }}</h3>
+    </a>
 
+</form>
 
 <script>
     const searchInput = document.getElementById('search-input');
@@ -25,17 +26,16 @@
         const savedQuery = localStorage.getItem('searchQuery');
         if (savedQuery) {
             searchInput.value = savedQuery;
-            // Move o cursor para o final
-            searchInput.setSelectionRange(savedQuery.length, savedQuery.length);
+            searchInput.setSelectionRange(savedQuery.length, savedQuery.length); // Move o cursor para o final
         }
         searchInput.focus();
     });
 
     // Salva o valor no localStorage e submete o formulário
     searchInput.addEventListener('input', function () {
-        const query = this.value;
+        const query = this.value.trim();
         localStorage.setItem('searchQuery', query); // Salva o valor
-        if (query.length > 3 || query.length === 0)  {
+        if (query.length > 3 || query.length === 0) {
             document.getElementById('search-form').submit();
         }
     });
@@ -66,6 +66,32 @@
             {% endfor %}
         </tbody>
     </table>
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginação">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}">Próxima</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Próxima</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 {% else %}
     <p>Nenhum arquivo encontrado.</p>
 {% endif %}

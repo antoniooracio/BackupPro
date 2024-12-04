@@ -1,9 +1,9 @@
-from django.shortcuts import render
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.template import loader
-from django.contrib.admin.sites import site
+from django.core.paginator import Paginator
 import os
+
 from .models import equipment, BackupFile
 from django.conf import settings
 
@@ -43,30 +43,32 @@ def error500(request):
 def arquivos_backup(request, equipamento_id):
     """
     Exibe a lista de arquivos de backup para o equipamento selecionado.
-    Permite pesquisar arquivos pelo nome.
+    Adiciona funcionalidade de pesquisa e paginação.
     """
     equipamento = get_object_or_404(equipment, id=equipamento_id)
-
-    # Caminho para a pasta de backups do equipamento
-    backup_dir = os.path.join('backups', equipamento.descricao)  # Pasta específica do equipamento
+    backup_dir = os.path.join('backups', equipamento.descricao)
     arquivos = []
 
-    # Verifica se a pasta existe
     if os.path.exists(backup_dir):
-        # Lista todos os arquivos na pasta e ordena por nome
-        arquivos = sorted(os.listdir(backup_dir))
-    else:
-        arquivos = []
+        arquivos = sorted(os.listdir(backup_dir))  # Ordena os arquivos por nome
 
-    # Filtra os arquivos pelo termo de pesquisa
-    query = request.GET.get('q', '').strip()
+    # Busca
+    query = request.GET.get('q', '').strip().lower()
     if query:
-        arquivos = [arquivo for arquivo in arquivos if query.lower() in arquivo.lower()]
+        arquivos = [arquivo for arquivo in arquivos if query in arquivo.lower()]
+
+    # Paginação
+    paginator = Paginator(arquivos, 10)  # 10 arquivos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'core/arquivos_backup.html', {
         'equipamento': equipamento,
-        'arquivos': arquivos,
+        'arquivos': page_obj.object_list,
+        'page_obj': page_obj,
+        'query': query,
     })
+
 
 def download_backup(request, arquivo):
     """

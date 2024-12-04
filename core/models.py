@@ -2,7 +2,7 @@ import uuid
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import CASCADE
-from .AcessoEquipamentoSSH import acessar_equipamento
+from core.AcessoEquipamentoSSH import acessar_equipamento
 from django.utils import timezone
 
 import os
@@ -28,6 +28,7 @@ class modelEquipment(models.Model):
     class Meta:
         verbose_name = "Modelo de Equipamento"
         verbose_name_plural = "Modelo de Equipamentos"
+        app_label = 'core'  # Substitua pelo nome do seu módulo ou app
 
 class ScriptEquipment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

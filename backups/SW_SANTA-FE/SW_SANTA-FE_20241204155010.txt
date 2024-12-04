@@ -4,43 +4,38 @@ aaa user admin
  password $1$vULTMZLB$du9g2nKsU9nbqO7H6MGiG0
  group admin
 !
-dot1q
- vlan 43
-  name OSPF_FERROVIA
-  interface gigabit-ethernet-1/1/5
-  !
- !
- vlan 333
-  name PSO-norte
-  interface gigabit-ethernet-1/1/6
-  !
- !
-!
 mpls ldp
  lsr-id loopback-0
-  interface l3-OSPF_FERROVIA
+  interface l3-OSPF_COLINA
   !
-  interface l3-OSPF_PMW
-  !
-  neighbor targeted 10.255.255.30
+  interface l3-oSPF_SIM_COLINA
   !
  !
 !
 mpls l2vpn
- vpls-group PETRONORTE
-  vpn VLAN_30
-   vfi
-    pw-type vlan 30
-    neighbor 10.255.255.30
-     pw-id 255030
-     pw-load-balance
-      flow-label both
-     !
+ vpws-group SANTA_FE
+  vpn GER_112
+   neighbor 10.255.255.30
+    pw-type vlan
+    pw-load-balance
+     flow-label both
     !
+    pw-id 55112
    !
-   bridge-domain
-    access-interface gigabit-ethernet-1/1/4
+   access-interface ten-gigabit-ethernet-1/1/3
+    dot1q 112
+   !
+  !
+  vpn PPPoE_2001
+   neighbor 10.255.255.30
+    pw-type vlan
+    pw-load-balance
+     flow-label both
     !
+    pw-id 552001
+   !
+   access-interface ten-gigabit-ethernet-1/1/3
+    dot1q 2001
    !
   !
  !
@@ -53,9 +48,6 @@ snmp traps login-success
 snmp agent enabled
 snmp agent version v2c
 snmp agent version v3
-snmp community idcorpbrasil
- sec-name idcorpbrasil
-!
 snmp community public
  sec-name public
 !
@@ -76,16 +68,6 @@ snmp notify std_v3_inform
 snmp notify std_v3_trap
  tag std_v3_trap
 !
-snmp vacm group idcorpbrasil
- member idcorpbrasil
-  sec-model [ v2c ]
- !
- access "" v2c no-auth-no-priv
-  read-view root
-  write-view root
-  notify-view root
- !
-!
 snmp vacm group public
  member public
   sec-model [ v2c ]
@@ -102,7 +84,6 @@ snmp vacm view root
  !
 !
 interface gigabit-ethernet 1/1/1
- description UPLINK_PMW-NORTE
  no shutdown
  negotiation
  duplex full
@@ -130,7 +111,6 @@ interface gigabit-ethernet 1/1/3
  mtu 12266
 !
 interface gigabit-ethernet 1/1/4
- description PETRONORTE_CLIENTE
  no shutdown
  negotiation
  duplex full
@@ -140,7 +120,7 @@ interface gigabit-ethernet 1/1/4
  mtu 12266
 !
 interface gigabit-ethernet 1/1/5
- description UPLINK-FIBRA
+ description ACKAD
  no shutdown
  negotiation
  duplex full
@@ -150,7 +130,6 @@ interface gigabit-ethernet 1/1/5
  mtu 12266
 !
 interface gigabit-ethernet 1/1/6
- description PTP_PALMAS-VIA-NORTE
  no shutdown
  negotiation
  duplex full
@@ -177,21 +156,64 @@ interface gigabit-ethernet 1/1/8
  mdix normal
  mtu 12266
 !
-interface l3 OSPF_FERROVIA
- lower-layer-if vlan 43
- ipv4 address 10.20.20.56/31
+interface ten-gigabit-ethernet 1/1/1
+ no shutdown
+ no negotiation
+ duplex full
+ speed 10G
+ advertising-abilities 10Mfull 100Mfull 1Gfull
+ mdix normal
+ mtu 12266
 !
-interface l3 OSPF_PMW
- lower-layer-if vlan 333
- ipv4 address 10.20.20.54/31
+interface ten-gigabit-ethernet 1/1/2
+ description PTP_COLINA
+ no shutdown
+ no negotiation
+ duplex full
+ speed 10G
+ advertising-abilities 10Mfull 100Mfull 1Gfull
+ mdix normal
+ mtu 12266
+!
+interface ten-gigabit-ethernet 1/1/3
+ description OLT
+ no shutdown
+ no negotiation
+ duplex full
+ speed 10G
+ advertising-abilities 10Mfull 100Mfull 1Gfull
+ mdix normal
+ mtu 12266
+!
+interface ten-gigabit-ethernet 1/1/4
+ description PTP_SIM
+ no shutdown
+ no negotiation
+ duplex full
+ speed 10G
+ advertising-abilities 10Mfull 100Mfull 1Gfull
+ mdix normal
+ mtu 12266
+!
+interface l3 OSPF_COLINA
+ lower-layer-if vlan 110
+ ipv4 address 10.20.20.59/31
+!
+interface l3 PTP_OLT
+ lower-layer-if vlan 111
+ ipv4 address 10.20.20.62/31
+!
+interface l3 oSPF_SIM_COLINA
+ lower-layer-if vlan 10
+ ipv4 address 10.20.20.61/31
 !
 interface mgmt 1/1/1
  ipv4 address 192.168.0.25/24
 !
 interface loopback 0
- ipv4 address 10.255.255.50/32
+ ipv4 address 10.255.255.55/32
 !
-hostname SW01-PETRONORTE
+hostname SW_SANTA-FE
 telnet-server disabled
 oam
  efm
@@ -219,6 +241,18 @@ oam
   interface gigabit-ethernet-1/1/8
    mode passive
   !
+  interface ten-gigabit-ethernet-1/1/1
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/2
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/3
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/4
+   mode passive
+  !
  !
 !
 loopback-detection
@@ -236,15 +270,71 @@ vrf global
 vrf mgmt
 !
 router ospf 1 vrf global
+ import-prefix-list allowerd-prefix-ospf
+ router-id 10.255.255.55
  area 0
-  interface l3-OSPF_FERROVIA
+  interface l3-OSPF_COLINA
    network-type point-to-point
   !
-  interface l3-OSPF_PMW
-   cost 50
+  interface l3-PTP_OLT
+   network-type point-to-point
+  !
+  interface l3-oSPF_SIM_COLINA
+   cost 10
    network-type point-to-point
   !
   interface loopback-0
+  !
+ !
+!
+dot1q
+ vlan 10
+  name OSPF_SIM
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 70
+  name PPPoE
+  interface ten-gigabit-ethernet-1/1/2
+  !
+  interface ten-gigabit-ethernet-1/1/3
+  !
+ !
+ vlan 110
+  name OSPF_COLINA
+  interface ten-gigabit-ethernet-1/1/2
+  !
+ !
+ vlan 111
+  interface ten-gigabit-ethernet-1/1/3
+  !
+ !
+ vlan 611,2002-2004
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 839
+  interface gigabit-ethernet-1/1/5
+  !
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 1604
+  interface gigabit-ethernet-1/1/5
+  !
+  interface ten-gigabit-ethernet-1/1/2
+  !
+  interface ten-gigabit-ethernet-1/1/3
+  !
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 2001
+  interface gigabit-ethernet-1/1/5
+  !
+  interface ten-gigabit-ethernet-1/1/2
+  !
+  interface ten-gigabit-ethernet-1/1/4
   !
  !
 !
@@ -267,6 +357,29 @@ remote-devices
  !
  interface gigabit-ethernet-1/1/8
  !
+ interface ten-gigabit-ethernet-1/1/1
+ !
+ interface ten-gigabit-ethernet-1/1/2
+ !
+ interface ten-gigabit-ethernet-1/1/3
+ !
+ interface ten-gigabit-ethernet-1/1/4
+ !
 !
-SW01-PETRONORTE# 
-SW01-PETRONORTE# 
+prefix-list allowerd-prefix-ospf
+ seq 10
+  action permit
+  address 0.0.0.0/0
+ !
+ seq 20
+  action permit
+  address 10.20.20.0/24
+  ge 24
+ !
+ seq 30
+  action permit
+  address 10.255.255.0/24
+  ge 24
+ !
+!
+SW_SANTA-FE# 

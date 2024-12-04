@@ -76,6 +76,9 @@ JAZZMIN_SETTINGS = {
     # Whether to aut expand the menu
     "navigation_expanded": True,
 
+    # Remove o menu do dashboard
+    "hide_dashboard": True,
+
     # Hide these apps when generating side menu e.g (auth)
     "hide_apps": [],
 

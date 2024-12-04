@@ -1,4 +1,0 @@
-terminal length 0
------------------------------^
-syntax error: unknown argument
-SW_SANTA-FE# 

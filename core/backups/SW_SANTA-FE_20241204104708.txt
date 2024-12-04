@@ -207,3 +207,179 @@ interface l3 oSPF_SIM_COLINA
  lower-layer-if vlan 10
  ipv4 address 10.20.20.61/31
 !
+interface mgmt 1/1/1
+ ipv4 address 192.168.0.25/24
+!
+interface loopback 0
+ ipv4 address 10.255.255.55/32
+!
+hostname SW_SANTA-FE
+telnet-server disabled
+oam
+ efm
+  interface gigabit-ethernet-1/1/1
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/2
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/3
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/4
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/5
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/6
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/7
+   mode passive
+  !
+  interface gigabit-ethernet-1/1/8
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/1
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/2
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/3
+   mode passive
+  !
+  interface ten-gigabit-ethernet-1/1/4
+   mode passive
+  !
+ !
+!
+loopback-detection
+ destination-address alternative
+!
+mac-address-table
+ aging-time 600
+!
+layer2-control-protocol
+ tunnel-mac datacom
+ tunnel-priority 7
+!
+vrf global
+!
+vrf mgmt
+!
+router ospf 1 vrf global
+ import-prefix-list allowerd-prefix-ospf
+ router-id 10.255.255.55
+ area 0
+  interface l3-OSPF_COLINA
+   network-type point-to-point
+  !
+  interface l3-PTP_OLT
+   network-type point-to-point
+  !
+  interface l3-oSPF_SIM_COLINA
+   cost 10
+   network-type point-to-point
+  !
+  interface loopback-0
+  !
+ !
+!
+dot1q
+ vlan 10
+  name OSPF_SIM
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 70
+  name PPPoE
+  interface ten-gigabit-ethernet-1/1/2
+  !
+  interface ten-gigabit-ethernet-1/1/3
+  !
+ !
+ vlan 110
+  name OSPF_COLINA
+  interface ten-gigabit-ethernet-1/1/2
+  !
+ !
+ vlan 111
+  interface ten-gigabit-ethernet-1/1/3
+  !
+ !
+ vlan 611,2002-2004
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 839
+  interface gigabit-ethernet-1/1/5
+  !
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 1604
+  interface gigabit-ethernet-1/1/5
+  !
+  interface ten-gigabit-ethernet-1/1/2
+  !
+  interface ten-gigabit-ethernet-1/1/3
+  !
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+ vlan 2001
+  interface gigabit-ethernet-1/1/5
+  !
+  interface ten-gigabit-ethernet-1/1/2
+  !
+  interface ten-gigabit-ethernet-1/1/4
+  !
+ !
+!
+license mpls enabled
+license mpls key ***
+remote-devices
+ interface gigabit-ethernet-1/1/1
+ !
+ interface gigabit-ethernet-1/1/2
+ !
+ interface gigabit-ethernet-1/1/3
+ !
+ interface gigabit-ethernet-1/1/4
+ !
+ interface gigabit-ethernet-1/1/5
+ !
+ interface gigabit-ethernet-1/1/6
+ !
+ interface gigabit-ethernet-1/1/7
+ !
+ interface gigabit-ethernet-1/1/8
+ !
+ interface ten-gigabit-ethernet-1/1/1
+ !
+ interface ten-gigabit-ethernet-1/1/2
+ !
+ interface ten-gigabit-ethernet-1/1/3
+ !
+ interface ten-gigabit-ethernet-1/1/4
+ !
+!
+prefix-list allowerd-prefix-ospf
+ seq 10
+  action permit
+  address 0.0.0.0/0
+ !
+ seq 20
+  action permit
+  address 10.20.20.0/24
+  ge 24
+ !
+ seq 30
+  action permit
+  address 10.255.255.0/24
+  ge 24
+ !
+!
+SW_SANTA-FE# 

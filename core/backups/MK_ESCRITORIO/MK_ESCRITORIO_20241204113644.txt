@@ -1,0 +1,35 @@
+time.sleep(5)[antonio.idc@PPPoE-ESCRITORIO] > time.sleep(5)
+syntax error (line 1 column 11)
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > [antonio.idc@PPPoE-ESCRITORIO] > 
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > /export file=MK_ESCRITORIO_20241204113616 verb[antonio.idc@PPPoE-ESCRITORIO] > /export file=MK_ESCRITORIO_20241204113616 ver>< file=MK_ESCRITORIO_20241204113616 verbo                                      < file=MK_ESCRITORIO_20241204113616 verbose< file=MK_ESCRITORIO_20241204113616 verbose
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > :delay 5s[antonio.idc@PPPoE-ESCRITORIO] > :delay 5s
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > [antonio.idc@PPPoE-ESCRITORIO] > 
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > :log info "Enviando Backup ";[antonio.idc@PPPoE-ESCRITORIO] > :log info "Enviando Backup ";
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > /tool fetch address=177.52.216.4 port=21 user=[antonio.idc@PPPoE-ESCRITORIO] > /tool fetch address=177.52.216.4 port=21 user><etch address=177.52.216.4 port=21 user=b                                      <etch address=177.52.216.4 port=21 user=backup password=Anas2108@@ upload=yes m<etch address=177.52.216.4 port=21 user=backup password=Anas2108@@ upload=yes ><backup password=Anas2108@@ upload=yes mo                                      <backup password=Anas2108@@ upload=yes mode=ftp src-path="MK_ESCRITORIO_2024120<backup password=Anas2108@@ upload=yes mode=ftp src-path="MK_ESCRITORIO_202412><ode=ftp src-path="MK_ESCRITORIO_20241204                                      <ode=ftp src-path="MK_ESCRITORIO_20241204113616.rsc"  dst-path="/MK_ESCRITORIO/<ode=ftp src-path="MK_ESCRITORIO_20241204113616.rsc"  dst-path="/MK_ESCRITORIO><4113616.rsc"  dst-path="/MK_ESCRITORIO/M                                      <4113616.rsc"  dst-path="/MK_ESCRITORIO/MK_ESCRITORIO_20241204113616.rsc"<4113616.rsc"  dst-path="/MK_ESCRITORIO/MK_ESCRITORIO_20241204113616.rsc"
+  status: requesting
+-- [Q quit|D dump|C-z pause]    status: uploading
+  uploaded: 48KiB
+     total: 87KiB
+  duration: 0s
+-- [written to "console-dump.txt"]    status: uploading
+  uploaded: 87KiB
+     total: 87KiB
+  duration: 0s
+-- [written to "console-dump.txt"]    status: uploading
+  uploaded: 87KiB
+     total: 87KiB
+  duration: 1s
+-- [Q quit|D dump|C-z pause]    status: uploading
+  uploaded: 87KiB
+     total: 87KiB
+  duration: 2s
+-- [Q quit|D dump|C-z pause]    status: uploading
+  uploaded: 87KiB
+     total: 87KiB
+  duration: 3s
+-- [Q quit|D dump|C-z pause]    status: finished
+  uploaded: 87KiB
+     total: 87KiB
+  duration: 4s
+
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > 
