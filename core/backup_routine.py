@@ -149,8 +149,8 @@ def agendar_rotina():
     """
     Agenda a rotina de backups para rodar todos os dias às 00:01.
     """
-    schedule.every().day.at("15:50:00").do(executar_backups)
-    print("Rotina de backup agendada para 15:50 diariamente.")
+    schedule.every().day.at("00:01:00").do(executar_backups)
+    print("Rotina de backup agendada para 00:01 diariamente.")
 
     # Loop infinito para manter o agendamento ativo
     while True:
