@@ -75,6 +75,27 @@ class enterprise(models.Model):
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
 
+    def save(self, *args, **kwargs):
+        """
+        Atualiza o status dos equipamentos associados ao status da empresa.
+        """
+        if self.pk:  # Garante que estamos lidando com um registro existente
+            old_status = enterprise.objects.get(pk=self.pk).ativo
+            if old_status != self.ativo:
+                # Se o status mudou, sincroniza os equipamentos
+                novo_status_equipamento = EquipmentBackup.ACTIVE if self.ativo == EnterpriseActive.ATIVO else EquipmentBackup.INACTIVE
+                self.equipamento.update(backup=novo_status_equipamento)
+                print(f"Equipamentos da empresa '{self.nome}' atualizados para backup='{novo_status_equipamento}'.")
+
+        super().save(*args, **kwargs)  # Salva as alterações no banco
+
+    def __str__(self):
+        return f'{self.nome} {self.representante}'
+
+    class Meta:
+        verbose_name = "Empresa"
+        verbose_name_plural = "Empresas"
+
 class EquipmentBackup(models.TextChoices):
     ACTIVE = "Sim"
     INACTIVE = "Não"

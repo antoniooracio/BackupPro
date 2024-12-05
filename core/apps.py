@@ -5,7 +5,7 @@ class CoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'core'
 
-    def ready(self):
-        from core.backup_routine import iniciar_thread_agendamento
-        iniciar_thread_agendamento()
+#    def ready(self):
+#        from core.backup_routine import iniciar_thread_agendamento
+#        iniciar_thread_agendamento()
 
