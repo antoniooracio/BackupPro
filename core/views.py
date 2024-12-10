@@ -4,8 +4,84 @@ from django.template import loader
 from django.core.paginator import Paginator
 import os
 
-from .models import equipment, BackupFile
+from .models import equipment, BackupFile, enterprise
 from django.conf import settings
+
+from rest_framework import viewsets, generics, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.http import Http404, FileResponse
+from django.conf import settings
+
+from .models import equipment, BackupFile, enterprise
+from .serializers import EquipmentSerializer, EnterpriseSerializer
+
+
+class EquipmentViewSet(viewsets.ModelViewSet):
+    """
+    API para listar, criar, atualizar e deletar equipamentos.
+    """
+    serializer_class = EquipmentSerializer
+    queryset = equipment.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Filtra os equipamentos para mostrar apenas os da empresa do usuário logado.
+        """
+        empresa = self.request.user.empresa
+        return empresa.get_equipamentos()
+
+
+class EnterpriseViewSet(viewsets.ModelViewSet):
+    """
+    API para listar, criar, atualizar e deletar empresas.
+    """
+    serializer_class = EnterpriseSerializer
+    queryset = enterprise.objects.all()
+    permission_classes = [IsAuthenticated]
+
+
+@api_view(['GET'])
+def arquivos_backup(request, equipamento_id):
+    """
+    Lista os arquivos de backup de um equipamento.
+    """
+    equipamento = get_object_or_404(equipment, id=equipamento_id)
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups', equipamento.descricao)
+
+    if not os.path.exists(backup_dir):
+        return Response({"detail": "Nenhum backup encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    arquivos = sorted(os.listdir(backup_dir))
+    query = request.GET.get('q', '').strip().lower()
+    if query:
+        arquivos = [arquivo for arquivo in arquivos if query in arquivo.lower()]
+
+    return Response({"equipamento": equipamento.descricao, "arquivos": arquivos})
+
+
+@api_view(['GET'])
+def download_backup(request, equipamento_id, arquivo):
+    """
+    Faz o download de um arquivo de backup.
+    """
+    equipamento = get_object_or_404(equipment, id=equipamento_id)
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups', equipamento.descricao)
+    arquivo_path = os.path.join(backup_dir, arquivo)
+
+    if not os.path.exists(arquivo_path):
+        raise Http404(f"Arquivo {arquivo} não encontrado.")
+
+    return FileResponse(open(arquivo_path, 'rb'), as_attachment=True, filename=arquivo)
+
+
+
+
+
+
+
 
 def index(request):
     return render(request, 'index.html')

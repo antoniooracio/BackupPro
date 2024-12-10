@@ -1,0 +1,3 @@
+/export file=MK_ESCRITORIO_20241205142127 verb[antonio.idc@PPPoE-ESCRITORIO] > /export file=MK_ESCRITORIO_20241205142127 ver>< file=MK_ESCRITORIO_20241205142127 verbo                                      < file=MK_ESCRITORIO_20241205142127 verbose< file=MK_ESCRITORIO_20241205142127 verbose
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > [antonio.idc@PPPoE-ESCRITORIO] > 
+[antonio.idc@PPPoE-ESCRITORIO] >                                               [antonio.idc@PPPoE-ESCRITORIO] > #

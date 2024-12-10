@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'rest_framework',
     #'core.apps.CoreConfig',  # Configuração com verbose_name para o Django Admin
 ]
 
