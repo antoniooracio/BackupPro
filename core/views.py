@@ -38,9 +38,16 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
     """
     API para listar, criar, atualizar e deletar empresas.
     """
-    serializer_class = EnterpriseSerializer
     queryset = enterprise.objects.all()
+    serializer_class = EnterpriseSerializer  # Usa o serializer com campos reduzidos
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        """
+        Permite alternar entre diferentes serializers se necessário.
+        """
+        # Exemplo: Condicional para usar diferentes serializers (se aplicável)
+        return EnterpriseSerializer
 
 
 @api_view(['GET'])

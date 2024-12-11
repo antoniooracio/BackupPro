@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'rest_framework',
+    'rest_framework.authtoken',
     #'core.apps.CoreConfig',  # Configuração com verbose_name para o Django Admin
 ]
 
@@ -143,4 +144,13 @@ JAZZMIN_SETTINGS = JAZZMIN_SETTINGS
 JAZZMIN_UI_TWEAKS = {
     "theme": "slate",  # Tema padrão (claro)
     "dark_mode_theme": "darkly",  # Tema para modo escuro
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Habilita autenticação via token
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Requer autenticação por padrão
+    ],
 }

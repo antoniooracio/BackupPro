@@ -9,4 +9,4 @@ class EquipmentSerializer(serializers.ModelSerializer):
 class EnterpriseSerializer(serializers.ModelSerializer):
     class Meta:
         model = enterprise
-        fields = '__all__'
+        fields = ['id', 'nome', 'cidade', 'uf', 'ativo']  # Apenas os campos desejados
