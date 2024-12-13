@@ -162,7 +162,7 @@ def iniciar_thread_agendamento():
     """
     Inicia a rotina de agendamento em uma thread separada.
     """
-    agendamento_thread = threading.Thread(target=agendar_rotina)
+    agendamento_thread = threading.Thread(target=agendar_rotina, daemon=True)
     agendamento_thread.start()
 
 if __name__ == "__main__":
