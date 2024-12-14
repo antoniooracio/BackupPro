@@ -1,51 +1,55 @@
 import uuid
+import os
+from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import CASCADE
-from core.AcessoEquipamentoSSH import acessar_equipamento
 from django.utils import timezone
 
-import os
-from datetime import datetime
+from core.AcessoEquipamentoSSH import acessar_equipamento
+from core.choices.enterprise import EnterpriseActive
 
-class manufacturer(models.Model):
+class Manufacturer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField('Nome do Fabricante', max_length=100)
 
     def __str__(self):
         return self.nome
+
     class Meta:
         verbose_name = "Fabricánte"
         verbose_name_plural = "Fabricántes"
 
-class modelEquipment(models.Model):
+
+class ModelEquipment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     modelo = models.CharField('Modelo', max_length=100)
-    manufacturer = models.ForeignKey(manufacturer, on_delete=models.CASCADE)
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.modelo
+
     class Meta:
         verbose_name = "Modelo de Equipamento"
         verbose_name_plural = "Modelo de Equipamentos"
         app_label = 'core'  # Substitua pelo nome do seu módulo ou app
 
+
 class ScriptEquipment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     Script = models.TextField('Script do Backup', blank=True, null=True)
-    modelEquipment = models.ForeignKey(modelEquipment, on_delete=models.CASCADE)
+    modelEquipment = models.ForeignKey(ModelEquipment, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.modelEquipment)
+
     class Meta:
         verbose_name = "Script"
         verbose_name_plural = "Scripts"
 
-class EnterpriseActive(models.TextChoices):
-        ATIVO = "Sim"
-        DESATIVADO = "Não"
 
-class enterprise(models.Model):
+
+class Enterprise(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField('Nome da empresa', max_length=100)
     uf = models.CharField('Estado', max_length=2)
@@ -54,10 +58,11 @@ class enterprise(models.Model):
     cnpj = models.CharField('CNPJ', max_length=18)
     representante = models.CharField('Nome do representante', max_length=50)
     contato = models.CharField('Telefone', max_length=12)
-    email = models.CharField('E-mail',max_length=60,  blank=True, null=True)
+    email = models.CharField('E-mail', max_length=60, blank=True, null=True)
+    horario_backup = models.TimeField(null=True, blank=True)
     ativo = models.CharField('Status', max_length=20,
-                              choices=EnterpriseActive.choices,
-                              default=EnterpriseActive.ATIVO)
+                             choices=EnterpriseActive.choices,
+                             default=EnterpriseActive.ATIVO)
     usuario = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -65,29 +70,9 @@ class enterprise(models.Model):
         related_name="empresa"
     )
 
-
     def get_equipamentos(self):
         # Retorna todos os equipamentos relacionados a essa empresa
         return self.equipamento.all()
-    def __str__(self):
-        return f'{self.nome} {self.representante}'
-    class Meta:
-        verbose_name = "Empresa"
-        verbose_name_plural = "Empresas"
-
-    def save(self, *args, **kwargs):
-        """
-        Atualiza o status dos equipamentos associados ao status da empresa.
-        """
-        if self.pk:  # Garante que estamos lidando com um registro existente
-            old_status = enterprise.objects.get(pk=self.pk).ativo
-            if old_status != self.ativo:
-                # Se o status mudou, sincroniza os equipamentos
-                novo_status_equipamento = EquipmentBackup.ACTIVE if self.ativo == EnterpriseActive.ATIVO else EquipmentBackup.INACTIVE
-                self.equipamento.update(backup=novo_status_equipamento)
-                print(f"Equipamentos da empresa '{self.nome}' atualizados para backup='{novo_status_equipamento}'.")
-
-        super().save(*args, **kwargs)  # Salva as alterações no banco
 
     def __str__(self):
         return f'{self.nome} {self.representante}'
@@ -95,16 +80,17 @@ class enterprise(models.Model):
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
+
 
 class EquipmentBackup(models.TextChoices):
     ACTIVE = "Sim"
     INACTIVE = "Não"
 
 
-class equipment(models.Model):
+class Equipment(models.Model):
     descricao = models.CharField('Nome do equipamento', max_length=30)
-    ip = models.CharField('IP de acesso', max_length=30,  blank=True, null=True)
-    portaacesso = models.CharField('Porta SSH', max_length=6,  blank=True, null=True)
+    ip = models.CharField('IP de acesso', max_length=30, blank=True, null=True)
+    portaacesso = models.CharField('Porta SSH', max_length=6, blank=True, null=True)
 
     ACCESS_TYPE_CHOICES = [
         ('Telnet', 'Telnet'),
@@ -117,16 +103,18 @@ class equipment(models.Model):
         verbose_name='Tipo de Acesso'
     )
 
-    usuarioacesso = models.CharField('Usuário de acesso', max_length=20,  blank=True, null=True)
-    senhaacesso = models.CharField('Senha de acesso', max_length=30,  blank=True, null=True)
+    usuarioacesso = models.CharField('Usuário de acesso', max_length=20, blank=True, null=True)
+    senhaacesso = models.CharField('Senha de acesso', max_length=30, blank=True, null=True)
     backup = models.CharField(max_length=20,
                               choices=EquipmentBackup.choices,
                               default=EquipmentBackup.ACTIVE)
     UltimoBackup = models.DateTimeField('Data Último Backup')
 
-    enterprise = models.ForeignKey(enterprise, on_delete=CASCADE, related_name="equipamento", verbose_name='Proprietário')
-    modelEquipment = models.ForeignKey(modelEquipment, on_delete=CASCADE, verbose_name='Modelo')
-    ScriptEquipment = models.ForeignKey(ScriptEquipment, on_delete=CASCADE, verbose_name='Script', default='1db5796166b34da1a3f7828c7469c506')
+    enterprise = models.ForeignKey(Enterprise, on_delete=CASCADE, related_name="equipamento",
+                                   verbose_name='Proprietário')
+    modelEquipment = models.ForeignKey(ModelEquipment, on_delete=CASCADE, verbose_name='Modelo')
+    ScriptEquipment = models.ForeignKey(ScriptEquipment, on_delete=CASCADE, verbose_name='Script',
+                                        default='1db5796166b34da1a3f7828c7469c506')
 
     def __str__(self):
         return f'{self.descricao} {self.ip} (ID: {self.id})'
@@ -197,7 +185,7 @@ class equipment(models.Model):
 
 
 class BackupFile(models.Model):
-    equipamento = models.ForeignKey('equipment', on_delete=models.CASCADE, related_name="backup_files")
+    equipamento = models.ForeignKey('Equipment', on_delete=models.CASCADE, related_name="backup_files")
     file = models.FileField(upload_to='backups/', max_length=500)  # Salva os arquivos na pasta 'backups/'
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

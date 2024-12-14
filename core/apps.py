@@ -7,6 +7,7 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
+        import core.signals
         # Garantir que o agendamento seja iniciado apenas uma vez
         global agendamento_iniciado
         if not getattr(self, '_agendamento_iniciado', False):

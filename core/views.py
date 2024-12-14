@@ -4,7 +4,7 @@ from django.template import loader
 from django.core.paginator import Paginator
 import os
 
-from .models import equipment, BackupFile, enterprise
+from .models import Equipment, BackupFile, Enterprise
 from django.conf import settings
 
 from rest_framework import viewsets, generics, status
@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.http import Http404, FileResponse
 from django.conf import settings
 
-from .models import equipment, BackupFile, enterprise
+from .models import Equipment, BackupFile, Enterprise
 from .serializers import EquipmentSerializer, EnterpriseSerializer
 
 
@@ -23,7 +23,7 @@ class EquipmentViewSet(viewsets.ModelViewSet):
     API para listar, criar, atualizar e deletar equipamentos.
     """
     serializer_class = EquipmentSerializer
-    queryset = equipment.objects.all()
+    queryset = Equipment.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -38,7 +38,7 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
     """
     API para listar, criar, atualizar e deletar empresas.
     """
-    queryset = enterprise.objects.all()
+    queryset = Enterprise.objects.all()
     serializer_class = EnterpriseSerializer  # Usa o serializer com campos reduzidos
     permission_classes = [IsAuthenticated]
 
@@ -120,7 +120,6 @@ def error404(request, ex):
 def error500(request):
     template = loader.get_template('500.html')
     return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=500)
-
 
 
 def arquivos_backup(request, equipamento_id):

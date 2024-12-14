@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from datetime import datetime, timedelta
 from django.contrib.admin import SimpleListFilter
-from .models import enterprise, manufacturer, modelEquipment, ScriptEquipment, equipment, BackupFile
+from .models import Enterprise, Manufacturer, ModelEquipment, ScriptEquipment, Equipment, BackupFile
 
 
 @admin.action(description="Fazer Backup com Script")
@@ -44,7 +44,7 @@ class EnterpriseListFilter(SimpleListFilter):
         """
         if request.user.is_superuser:
             # Superusuário vê todas as empresas
-            empresas = [(e.id, e.nome) for e in enterprise.objects.all()]
+            empresas = [(e.id, e.nome) for e in Enterprise.objects.all()]
         elif hasattr(request.user, 'empresa'):
             # Usuário restrito vê apenas sua empresa
             empresas = [(request.user.empresa.id, request.user.empresa.nome)]
@@ -73,7 +73,7 @@ class EnterpriseListFilter(SimpleListFilter):
 
 
 # Registro no Admin
-@admin.register(equipment)
+@admin.register(Equipment)
 class equipmentAdmin(admin.ModelAdmin):
     search_fields = ('descricao', 'ip')  # Campo de busca no Admin
     list_display = ('descricao', 'ip_porta', 'usuarioacesso', 'format_ultimo_backup',
@@ -112,13 +112,13 @@ class equipmentAdmin(admin.ModelAdmin):
         if db_field.name == "enterprise":
             if request.user.is_superuser:
                 # Se o usuário for superusuário, permite escolher qualquer empresa
-                kwargs["queryset"] = enterprise.objects.all()
+                kwargs["queryset"] = Enterprise.objects.all()
             elif hasattr(request.user, 'empresa'):
                 # Se o usuário tem uma empresa associada, mostra apenas essa empresa
-                kwargs["queryset"] = enterprise.objects.filter(id=request.user.empresa.id)
+                kwargs["queryset"] = Enterprise.objects.filter(id=request.user.empresa.id)
             else:
                 # Caso o usuário não tenha empresa associada, não exibe nenhuma empresa
-                kwargs["queryset"] = enterprise.objects.none()
+                kwargs["queryset"] = Enterprise.objects.none()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def status_backup(self, obj):
@@ -166,7 +166,7 @@ class equipmentAdmin(admin.ModelAdmin):
     backup_dir.short_description = "Diretório de Backup"
 
 
-admin.site.register(enterprise, EnterpriseAdmin)
-admin.site.register(manufacturer)
-admin.site.register(modelEquipment)
+admin.site.register(Enterprise, EnterpriseAdmin)
+admin.site.register(Manufacturer)
+admin.site.register(ModelEquipment)
 admin.site.register(ScriptEquipment)
