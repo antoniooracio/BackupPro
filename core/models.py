@@ -7,7 +7,7 @@ from django.db.models import CASCADE
 from django.utils import timezone
 
 from core.AcessoEquipamentoSSH import acessar_equipamento
-from core.choices.enterprise import EnterpriseActive
+from core.choices.enterprise import EnterpriseActive, EquipmentBackup
 
 class Manufacturer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -81,10 +81,6 @@ class Enterprise(models.Model):
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
 
-
-class EquipmentBackup(models.TextChoices):
-    ACTIVE = "Sim"
-    INACTIVE = "Não"
 
 
 class Equipment(models.Model):

@@ -29,7 +29,7 @@ def executar_comando_via_ssh(modeladmin, request, queryset):
             messages.error(request, f"Erro ao acessar {equipamento.descricao}: {str(e)}")
 
 class EnterpriseAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'representante', 'cnpj', 'contato', 'email', 'ativo')
+    list_display = ('nome', 'representante', 'cnpj', 'contato', 'email', 'horario_backup', 'ativo')
 
 
 
