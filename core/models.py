@@ -60,6 +60,8 @@ class Enterprise(models.Model):
     contato = models.CharField('Telefone', max_length=12)
     email = models.CharField('E-mail', max_length=60, blank=True, null=True)
     horario_backup = models.TimeField(null=True, blank=True)
+    ip_ssh = models.GenericIPAddressField(null=True, blank=True)
+    porta_ssh = models.IntegerField(default=22)
     ativo = models.CharField('Status', max_length=20,
                              choices=EnterpriseActive.choices,
                              default=EnterpriseActive.ATIVO)
@@ -76,6 +78,9 @@ class Enterprise(models.Model):
 
     def __str__(self):
         return f'{self.nome} {self.representante}'
+
+    def usa_tunnel_ssh(self):
+        return self.ip_ssh is not None
 
     class Meta:
         verbose_name = "Empresa"
