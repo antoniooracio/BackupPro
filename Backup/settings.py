@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_celery_beat',
     #'core.apps.CoreConfig',  # Configuração com verbose_name para o Django Admin
 ]
 
@@ -89,7 +90,7 @@ WSGI_APPLICATION = 'Backup.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3x',
     }
 }
 
@@ -153,3 +154,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',  # Requer autenticação por padrão
     ],
 }
+
+# Configuração do broker (Redis)
+CELERY_BROKER_URL = 'amqp://julio:backuppro@rabbitmq:5672/'  # RabbitMQ como broker
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# Timezone do Celery
+CELERY_TIMEZONE = 'America/Sao_Paulo'
+CELERY_ENABLE_UTC = False
