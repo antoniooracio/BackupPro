@@ -5,14 +5,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf.urls import handler404, handler500
-from core import views
+
 from .views import index, contact, modelEquipment, enterprise, manufacturer
 from django.conf.urls.static import static
 from django.conf import settings
 from . import views
 
 from rest_framework.routers import DefaultRouter
-from core.views import EquipmentViewSet, EnterpriseViewSet, arquivos_backup, download_backup
+from core.views import EquipmentViewSet, EnterpriseViewSet, arquivos_backup, download_backup, BackupUploadView, UpdateUltimoBackupView
 
 router = DefaultRouter()
 router.register(r'equipments', EquipmentViewSet)
@@ -36,8 +36,12 @@ urlpatterns =[
     path('modelos', modelEquipment),
     path('empresas', enterprise),
     path('fabricantes', manufacturer),
+    path('equipamentos/', views.listar_equipamentos, name='listar_equipamentos'),
     path('arquivos_backup/<int:equipamento_id>/', views.arquivos_backup, name='arquivos_backup'),
     path('download_backup/<str:arquivo>/', views.download_backup, name='download_backup'),
+
+    path('api/backup/<int:equipamento_id>/', BackupUploadView.as_view(), name='upload_backup'),
+    path('api/equipments/<int:equipamento_id>/update_backup/', UpdateUltimoBackupView.as_view(), name='update_backup'),
 
     path('api/', include(router.urls)),
     path('api/equipments/<uuid:equipamento_id>/backups/', arquivos_backup, name='arquivos-backup'),

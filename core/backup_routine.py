@@ -130,10 +130,10 @@ def executar_backups():
     print("Iniciando rotina de backups automáticos...")
 
     # Importa o modelo 'equipment' dentro da função para evitar erro de apps não carregadas
-    from core.models import equipment
+    from core.models import Equipment
 
     # Consulta os equipamentos ativos no banco de dados
-    equipamentos_ativos = equipment.objects.filter(backup="Sim")
+    equipamentos_ativos = Equipment.objects.filter(backup="Sim")
 
     if not equipamentos_ativos:
         print("Nenhum equipamento ativo para backup.")

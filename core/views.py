@@ -3,19 +3,45 @@ from django.http import HttpResponse, Http404
 from django.template import loader
 from django.core.paginator import Paginator
 import os
-
-from .models import Equipment, BackupFile, Enterprise
-from django.conf import settings
-
 from rest_framework import viewsets, generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.parsers import FileUploadParser
+from rest_framework import status
 from django.http import Http404, FileResponse
 from django.conf import settings
-
 from .models import Equipment, BackupFile, Enterprise
 from .serializers import EquipmentSerializer, EnterpriseSerializer
+from django.utils import timezone
+
+# View para upload de arquivos
+class BackupUploadView(APIView):
+    parser_classes = [FileUploadParser]
+
+    def post(self, request, equipamento_id, format=None):
+        equipamento = get_object_or_404(Equipment, id=equipamento_id)
+        backup_file = request.FILES['file']
+
+        # Salva o arquivo no diretório correspondente
+        backup_dir = os.path.join('backups', equipamento.descricao)
+        os.makedirs(backup_dir, exist_ok=True)
+        with open(os.path.join(backup_dir, backup_file.name), 'wb') as f:
+            for chunk in backup_file.chunks():
+                f.write(chunk)
+
+        return Response({"message": "Backup recebido com sucesso."}, status=status.HTTP_201_CREATED)
+
+
+# View para atualizar o último backup
+class UpdateUltimoBackupView(APIView):
+    def patch(self, request, equipamento_id, format=None):
+        equipamento = get_object_or_404(Equipment, id=equipamento_id)
+        equipamento.ultimo_backup = timezone.now()
+        equipamento.save()
+        return Response({"message": "Data do último backup atualizada."}, status=status.HTTP_200_OK)
 
 
 class EquipmentViewSet(viewsets.ModelViewSet):
@@ -55,7 +81,7 @@ def arquivos_backup(request, equipamento_id):
     """
     Lista os arquivos de backup de um equipamento.
     """
-    equipamento = get_object_or_404(equipment, id=equipamento_id)
+    equipamento = get_object_or_404(Equipment, id=equipamento_id)
     backup_dir = os.path.join(settings.BASE_DIR, 'backups', equipamento.descricao)
 
     if not os.path.exists(backup_dir):
@@ -74,7 +100,7 @@ def download_backup(request, equipamento_id, arquivo):
     """
     Faz o download de um arquivo de backup.
     """
-    equipamento = get_object_or_404(equipment, id=equipamento_id)
+    equipamento = get_object_or_404(Equipment, id=equipamento_id)
     backup_dir = os.path.join(settings.BASE_DIR, 'backups', equipamento.descricao)
     arquivo_path = os.path.join(backup_dir, arquivo)
 
@@ -105,29 +131,12 @@ def manufacturer(request):
 def modelEquipment(request):
     return render(request, 'modelEquipment.html')
 
-def Equipment(request):
-    # Obtém a empresa do usuário logado
-    empresa = request.user.empresa
-    # Usa o método get_equipamentos() para buscar os equipamentos
-    equipamentos = empresa.get_equipamentos()
-    # Renderiza a lista de equipamentos no template
-    return render(request, 'equipamentos.html', {'equipamentos': equipamentos})
-
-def error404(request, ex):
-    template = loader.get_template('404.html')
-    return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=404)
-
-def error500(request):
-    template = loader.get_template('500.html')
-    return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=500)
-
-
 def arquivos_backup(request, equipamento_id):
     """
     Exibe a lista de arquivos de backup para o equipamento selecionado.
     Adiciona funcionalidade de pesquisa e paginação.
     """
-    equipamento = get_object_or_404(equipment, id=equipamento_id)
+    equipamento = get_object_or_404(Equipment, id=equipamento_id)
     backup_dir = os.path.join('backups', equipamento.descricao)
     arquivos = []
 
@@ -151,6 +160,21 @@ def arquivos_backup(request, equipamento_id):
         'query': query,
     })
 
+def listar_equipamentos(request):
+    # Obtém a empresa do usuário logado
+    empresa = request.user.empresa
+    # Usa o método get_equipamentos() para buscar os equipamentos
+    equipamentos = empresa.get_equipamentos()
+    # Renderiza a lista de equipamentos no template
+    return render(request, 'equipamentos.html', {'equipamentos': equipamentos})
+
+def error404(request, ex):
+    template = loader.get_template('404.html')
+    return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=404)
+
+def error500(request):
+    template = loader.get_template('500.html')
+    return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=500)
 
 def download_backup(request, arquivo):
     """
