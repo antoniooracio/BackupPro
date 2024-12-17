@@ -49,7 +49,7 @@ services:
         - FTP_PASS=Anas2108@@
         - FTP_DIRECTORY=/opt/BackupPro
       volumes:
-        - /path/to/your/local/ftp/folder:/opt/BackupPro
+        - /opt/BackupPro
       ports:
         - "21:21"
       restart: always
