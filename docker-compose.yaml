@@ -50,7 +50,7 @@ services:
     volumes:
       - /opt/BackupPro
     ports:
-      - "21:21"
+      - "2100:21"
     restart: always
 #  rabbitmq:
 #    image: rabbitmq:3-management
