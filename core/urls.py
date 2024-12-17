@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf.urls import handler404, handler500
-
+from core.views import receber_backup
 from .views import index, contact, modelEquipment, enterprise, manufacturer
 from django.conf.urls.static import static
 from django.conf import settings
@@ -42,6 +42,7 @@ urlpatterns =[
 
     path('api/backup/<int:equipamento_id>/', BackupUploadView.as_view(), name='upload_backup'),
     path('api/equipments/<int:equipamento_id>/update_backup/', UpdateUltimoBackupView.as_view(), name='update_backup'),
+    path('api/backups/<int:equipamento_id>/', receber_backup, name='receber_backup'),
 
     path('api/', include(router.urls)),
     path('api/equipments/<uuid:equipamento_id>/backups/', arquivos_backup, name='arquivos-backup'),

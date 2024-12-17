@@ -3,7 +3,7 @@ import os
 from backup_routine import executar_backups  # Importa sua rotina de backups
 
 # Configurações
-API_URL = "http://<ENDERECO_DO_SISTEMA_PRINCIPAL>/api"
+API_URL = "http://servidor_principal/api"
 TOKEN = "<SEU_TOKEN_DE_AUTENTICACAO>"  # Se necessário
 
 def enviar_arquivo(equipamento_id, caminho_arquivo):

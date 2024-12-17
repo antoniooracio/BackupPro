@@ -4,7 +4,7 @@ from django.template import loader
 from django.core.paginator import Paginator
 import os
 from rest_framework import viewsets, generics, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -16,6 +16,7 @@ from django.conf import settings
 from .models import Equipment, BackupFile, Enterprise
 from .serializers import EquipmentSerializer, EnterpriseSerializer
 from django.utils import timezone
+from pathlib import Path
 
 # View para upload de arquivos
 class BackupUploadView(APIView):
@@ -74,6 +75,27 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         """
         # Exemplo: Condicional para usar diferentes serializers (se aplicável)
         return EnterpriseSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def receber_backup(request, equipamento_id):
+    arquivo = request.FILES.get('arquivo_backup')
+    if not arquivo:
+        return Response({"erro": "Nenhum arquivo foi enviado."}, status=400)
+
+    # Salvar o arquivo no servidor principal
+    destino = Path(f"backups/{arquivo.name}")
+    destino.parent.mkdir(parents=True, exist_ok=True)  # Garante que a pasta exista
+    with open(destino, "wb") as f:
+        for chunk in arquivo.chunks():
+            f.write(chunk)
+
+    # Atualizar o campo "ultimo_backup"
+    equipamento = get_object_or_404(Equipment, id=equipamento_id)
+    equipamento.ultimo_backup = timezone.now()
+    equipamento.save()
+
+    return Response({"mensagem": "Backup recebido com sucesso."}, status=201)
 
 
 @api_view(['GET'])
