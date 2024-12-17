@@ -46,11 +46,16 @@ services:
     environment:
       - FTP_USER=BackuPro
       - FTP_PASS=Anas2108@@
-      - FTP_DIRECTORY=/opt/BackupPro
-    volumes:
-      - /opt/BackupPro
+      - FTP_DIRECTORY=/opt/BackupPro/backups
+      - PASV_ADDRESS=177.52.216.4  # IP do servidor
+      - PASV_MIN_PORT=2100
+      - PASV_MAX_PORT=2200
+      - PASV_ENABLE=YES
     ports:
-      - "2100:21"
+      - "2121:21"
+      - "2100-2200:2100-2200"  # Faixa de portas passivas
+    volumes:
+      - ./backups:/opt/BackupPro/backups
     restart: always
 #  rabbitmq:
 #    image: rabbitmq:3-management

@@ -1,26 +1,37 @@
+import os
 import time
 from datetime import datetime
 import requests
-from backup_routine import executar_backups  # Rotina específica dos backups
-import os
+from ftplib import FTP
 import django
 import sys
 
-
-# Adiciona o caminho do seu projeto no sys.path
+# Configuração do Django
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Backup')))
-# Definir o DJANGO_SETTINGS_MODULE
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Backup.settings")
-# Configurar o Django
 django.setup()
 
+from core.models import Equipment
+from core.AcessoEquipamentoSSH import acessar_equipamento
+from django.utils import timezone
+from pathlib import Path
 
-# Configurações
+# Configurações da API e FTP
 API_URL = "http://177.52.216.4/api"
-TOKEN = "98c9cdee71132b4fbaa2b1a98577c786425a76fb"  # Substitua pelo token correspondente
+TOKEN = "98c9cdee71132b4fbaa2b1a98577c786425a76fb"
+HEADERS = {"Authorization": f"Token {TOKEN}"}
+FTP_CONFIG = {
+    "servidor": "177.52.216.4",
+    "usuario": "BackuPro",
+    "senha": "Anas2108@@",
+    "pasta_destino": "/opt/BackupPro/backups/",
+    "porta": 2121,
+}
 
-
-headers = {"Authorization": f"Token {TOKEN}"}
+# Pasta de backups
+BASE_DIR = Path(__file__).resolve().parent
+PASTA_BACKUP = BASE_DIR / "backups"
+os.makedirs(PASTA_BACKUP, exist_ok=True)
 
 
 # Função para verificar se o backup já foi feito hoje
@@ -39,72 +50,102 @@ def backup_hoje_realizado():
     return False
 
 
-# Função para atualizar a data do último backup
-def atualizar_data_ultimo_backup():
-    """Atualiza a data do último backup realizado no arquivo"""
-    data_hoje = datetime.now().date()
-    with open("ultimo_backup.txt", 'w') as f:
-        f.write(str(data_hoje))
+# Função para realizar o backup de um equipamento
+def realizar_backup(equipamento):
+    print(f"Iniciando backup para {equipamento.descricao} ({equipamento.ip})")
 
+    comando_backup = equipamento.ScriptEquipment.Script
+    protocolo = equipamento.access_type.upper()
 
-def obter_horario_backup():
-    """
-    Consulta o horário de backup da empresa associada ao token e retorna apenas o campo desejado.
-    """
-    url = f"{API_URL}/enterprises/"
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        empresas = response.json()  # Converte a resposta em JSON
-        if empresas and isinstance(empresas, list):
-            horario_backup = empresas[0].get("horario_backup")  # Pega o primeiro horário de backup
-            print(f"Rotina agendada para : {horario_backup}")
-            return horario_backup
+    try:
+        resposta = acessar_equipamento(
+            id=equipamento.id,
+            ip=equipamento.ip,
+            usuario=equipamento.usuarioacesso,
+            senha=equipamento.senhaacesso,
+            porta=equipamento.portaacesso,
+            comando=comando_backup,
+            nome_equipamento=equipamento.descricao,
+            protocolo=protocolo,
+        )
+
+        if resposta:
+            caminho_arquivo = salvar_backup(equipamento.descricao, resposta)
+            enviar_backup(equipamento.id, caminho_arquivo)
+            atualizar_ultimo_backup(equipamento.id)
         else:
-            print("Nenhuma empresa encontrada ou dados mal formatados.")
-            return None
-    else:
-        print(f"Erro ao obter empresas: {response.status_code} - {response.text}")
-        return None
+            print(f"Erro: Resposta vazia para o equipamento {equipamento.descricao}.")
+    except Exception as e:
+        print(f"Erro ao realizar backup: {e}")
 
+# Salva o backup no diretório local
+def salvar_backup(nome_equipamento, conteudo_backup):
+    pasta_equipamento = PASTA_BACKUP / nome_equipamento
+    pasta_equipamento.mkdir(parents=True, exist_ok=True)
 
-def obter_equipamentos_ativos():
-    """
-    Consulta os equipamentos ativos da empresa associada ao token.
-    """
-    url = f"{API_URL}/equipments/ativos/"
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return response.json()  # Espera uma lista de dicionários com os dados dos equipamentos
-    else:
-        print(f"Erro ao obter equipamentos: {response.status_code} - {response.text}")
-        return []
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    caminho_arquivo = pasta_equipamento / f"{nome_equipamento}_{timestamp}.txt"
 
+    with open(caminho_arquivo, "w", encoding="utf-8") as f:
+        f.write(conteudo_backup)
 
-def enviar_arquivo(equipamento_id, caminho_arquivo):
-    """
-    Envia o arquivo de backup para o servidor principal.
-    """
-    url = f"{API_URL}/backup/{equipamento_id}/"
-    with open(caminho_arquivo, 'rb') as f:
-        files = {'file': f}
-        response = requests.post(url, headers=headers, files=files)
-    if response.status_code == 201:
-        print(f"Backup enviado com sucesso: {caminho_arquivo}")
-    else:
-        print(f"Erro ao enviar backup: {response.status_code} - {response.text}")
+    print(f"Backup salvo em: {caminho_arquivo}")
+    return caminho_arquivo
 
+# Envia o arquivo de backup via FTP
+def enviar_arquivo_ftp(caminho_arquivo):
+    ftp = FTP()
+    ftp.connect(FTP_CONFIG["servidor"], FTP_CONFIG["porta"])
+    ftp.login(FTP_CONFIG["usuario"], FTP_CONFIG["senha"])
+    ftp.cwd(FTP_CONFIG["pasta_destino"])
 
+    with open(caminho_arquivo, "rb") as f:
+        ftp.storbinary(f"STOR {os.path.basename(caminho_arquivo)}", f)
+
+    ftp.quit()
+    print(f"Backup {caminho_arquivo} enviado via FTP com sucesso.")
+
+# Atualiza o campo 'ultimo_backup' via API
 def atualizar_ultimo_backup(equipamento_id):
     """
     Atualiza o campo 'ultimo_backup' do equipamento via API.
     """
     url = f"{API_URL}/equipments/{equipamento_id}/update_backup/"
-    response = requests.patch(url, headers=headers)
+    response = requests.patch(url, headers=HEADERS)
     if response.status_code == 200:
         print(f"Último backup atualizado para o equipamento {equipamento_id}.")
     else:
-        print(f"Erro ao atualizar último backup: {response.status_code} - {response.text}")
+        print(f"Erro ao atualizar último backup: {response.status_code}")
 
+# Envia o backup (API ou FTP)
+def enviar_backup(equipamento_id, caminho_arquivo):
+    try:
+        enviar_arquivo_ftp(caminho_arquivo)
+    except Exception as e:
+        print(f"Erro no envio via FTP: {e}")
+
+# Obtém o horário agendado via API
+def obter_horario_backup():
+    url = f"{API_URL}/enterprises/"
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code == 200:
+        empresas = response.json()
+        if empresas and isinstance(empresas, list):
+            horario_backup = empresas[0].get("horario_backup")
+            print(f"Horário agendado para: {horario_backup}")
+            return horario_backup
+    print(f"Erro ao obter horário: {response.status_code}")
+    return None
+
+# Função principal para processar backups
+def executar_backups():
+    equipamentos = Equipment.objects.filter(backup="Sim")
+    if not equipamentos:
+        print("Nenhum equipamento ativo para backup.")
+        return
+
+    for equipamento in equipamentos:
+        realizar_backup(equipamento)
 
 def processar_backups():
     """
@@ -115,15 +156,13 @@ def processar_backups():
         print("Não foi possível obter o horário de backup.")
         return
 
-    print(f"Rotina agendada para: {horario_agendado}")
-
+    print(f"Backup agendado para: {horario_agendado}")
     while True:
         # Verifica se o backup já foi realizado hoje
-        if backup_hoje_realizado():
-            print("Backup já realizado hoje. Aguardando amanhã...")
-            time.sleep(86400)  # Aguardar 24 horas (86400 segundos) para o próximo dia
-            continue  # Reinicia o loop para verificar o horário do novo dia
-
+       # if backup_hoje_realizado():
+       #     print("Backup já realizado hoje. Aguardando amanhã...")
+       #     time.sleep(30)  # Aguardar 24 horas (86400 segundos) para o próximo dia
+       #     continue  # Reinicia o loop para verificar o horário do novo dia
         agora = datetime.now().strftime("%H:%M:%S")
         print(f"Horário atual: {agora}")
 
@@ -132,18 +171,15 @@ def processar_backups():
             print("Horário alcançado! Executando backups...")
             backups_realizados = executar_backups()
             print(f"Backups realizados: {backups_realizados}")
-            atualizar_data_ultimo_backup()  # Atualiza a data do último backup
             time.sleep(60)  # Evita execução duplicada no mesmo minuto
         elif agora > horario_agendado:
             print("O horário agendado passou. Executando os backups!")
             backups_realizados = executar_backups()
             print(f"Backups realizados: {backups_realizados}")
-            atualizar_data_ultimo_backup()  # Atualiza a data do último backup
             time.sleep(60)  # Evita execução duplicada
         else:
             print("Ainda não é o horário agendado. Aguardando...")
             time.sleep(30)  # Checa novamente em 30 segundos
-
 
 if __name__ == "__main__":
     processar_backups()
