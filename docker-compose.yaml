@@ -40,6 +40,19 @@ services:
     networks:
       - mariadb_network
 
+  services:
+    ftp-server:
+      image: fauria/vsftpd
+      container_name: ftp-server
+      environment:
+        - FTP_USER=BackuPro
+        - FTP_PASS=Anas2108@@
+        - FTP_DIRECTORY=/opt/BackupPro
+      volumes:
+        - /path/to/your/local/ftp/folder:/opt/BackupPro
+      ports:
+        - "21:21"
+      restart: always
 #  rabbitmq:
 #    image: rabbitmq:3-management
 #    ports:
