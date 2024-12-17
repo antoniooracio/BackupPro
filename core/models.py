@@ -48,7 +48,6 @@ class ScriptEquipment(models.Model):
         verbose_name_plural = "Scripts"
 
 
-
 class Enterprise(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField('Nome da empresa', max_length=100)
@@ -85,7 +84,6 @@ class Enterprise(models.Model):
     class Meta:
         verbose_name = "Empresa"
         verbose_name_plural = "Empresas"
-
 
 
 class Equipment(models.Model):

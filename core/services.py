@@ -23,7 +23,6 @@ def atualizar_ultimo_backup(equipamento_id):
         print(f"Erro: Equipamento com ID {equipamento_id} não encontrado.")
 
 
-
 def conectar_com_tunnel(empresa, roteador, comando_backup):
     """
     Estabelece um túnel SSH intermediário (se necessário) e executa o comando no roteador.
