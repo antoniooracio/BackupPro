@@ -8,37 +8,65 @@ services:
     volumes:
       - .:/app
       - ./backups:/app/backups
-      - ./db.sqlite3x:/app/db.sqlite3x
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     ports:
-      - "8000:8000"
+      - "80:8000"
     environment:
       - DJANGO_SETTINGS_MODULE=Backup.settings
       - PYTHONUNBUFFERED=1
+      - DB_NAME=backup_db
+      - DB_USER=backup_user
+      - DB_PASSWORD=Anas2108@@
+      - DB_HOST=mariadb
+      - DB_PORT=33006
+    depends_on:
+      - mariadb
+      #- rabbitmq
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"  # Porta do broker RabbitMQ
-      - "15672:15672"  # Porta da interface de gerenciamento do RabbitMQ
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb-container
+    restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: julio
-      RABBITMQ_DEFAULT_PASS: backuppro
-
-  celery:
-    build: .
-    command: celery -A Backup worker --loglevel=info
+      MYSQL_ROOT_PASSWORD: Anas2108@@
+      MYSQL_DATABASE: backup_db
+      MYSQL_USER: backup_user
+      MYSQL_PASSWORD: Anas2108@@
+    ports:
+      - "33006:3306"
     volumes:
-      - .:/app
-    depends_on:
-      - rabbitmq
+      - db_data:/var/lib/mysql
+    networks:
+      - mariadb_network
 
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    environment:
+#      RABBITMQ_DEFAULT_USER: julio
+#      RABBITMQ_DEFAULT_PASS: backuppro
+#
+#  celery:
+#    build: .
+#    command: celery -A Backup worker --loglevel=info
+#    volumes:
+#      - .:/app
+#    depends_on:
+#      - rabbitmq
+#
+#  celery_beat:
+#    build: .
+#    command: celery -A Backup beat --loglevel=info
+#    volumes:
+#      - .:/app
+#    depends_on:
+#      - rabbitmq
 
-  celery_beat:
-    build: .
-    command: celery -A Backup beat --loglevel=info
-    volumes:
-      - .:/app
-    depends_on:
-      - rabbitmq
+volumes:
+  db_data:
+
+networks:
+  mariadb_network:

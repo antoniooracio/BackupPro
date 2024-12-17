@@ -22,13 +22,6 @@ router.register(r'enterprises', EnterpriseViewSet)
 
 
 urlpatterns =[
-    # Redireciona a raiz para o Django Admin
-    #####path('', lambda request: redirect('admin/')),
-    # Mantém o restante do seu mapeamento de URLs
-    ######path('admin/', admin.site.urls),
-    # Outras URLs da sua aplicação, se houver
-
-
 
     path('admin/', admin.site.urls),
     path('', index),
