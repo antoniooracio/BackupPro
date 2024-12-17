@@ -25,7 +25,7 @@ FTP_CONFIG = {
     "usuario": "BackuPro",
     "senha": "Anas2108@@",
     "pasta_destino": "/opt/BackupPro/backups/",
-    "porta": 2121,
+    "porta": 2101,
 }
 
 # Pasta de backups

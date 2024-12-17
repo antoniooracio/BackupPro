@@ -52,7 +52,7 @@ services:
       - PASV_MAX_PORT=2200
       - PASV_ENABLE=YES
     ports:
-      - "2121:21"
+      - "2101:21"
       - "2100-2200:2100-2200"  # Faixa de portas passivas
     volumes:
       - ./backups:/opt/BackupPro/backups
