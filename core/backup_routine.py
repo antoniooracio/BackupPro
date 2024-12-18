@@ -15,6 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 PASTA_BACKUP = BASE_DIR / "backups"
 os.makedirs(PASTA_BACKUP, exist_ok=True)  # Garante que a pasta de backups exista
 
+
 def realizar_backup(equipamento):
     print(f"Iniciando backup para {equipamento.descricao} ({equipamento.ip})")
 
