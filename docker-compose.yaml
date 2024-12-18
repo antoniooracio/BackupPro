@@ -11,7 +11,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     ports:
-      - "80:8000"
+      - "8000:8000"
     environment:
       - DJANGO_SETTINGS_MODULE=Backup.settings
       - PYTHONUNBUFFERED=1
@@ -48,7 +48,7 @@ services:
       - FTP_PASS=Anas2108@@
       - FTP_DIRECTORY=/opt/BackupPro/backups
     volumes:
-      - ./opt/BackupPro/backups
+      - ./backups:/opt/BackupPro/backups
       - ./vsftpd.conf:/etc/vsftpd.conf
     ports:
       - "2100:21"
