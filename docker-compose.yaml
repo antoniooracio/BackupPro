@@ -52,6 +52,7 @@ services:
       - ./vsftpd.conf:/etc/vsftpd.conf
     ports:
       - "2100:21"
+      - "21100-21110:21100-21110"  # Porta passiva
     restart: always
 #  rabbitmq:
 #    image: rabbitmq:3-management
