@@ -49,7 +49,7 @@ services:
       - FTP_DIRECTORY=/opt/BackupPro/backups
     volumes:
       - ./backups:/opt/BackupPro/backups
-      - ./vsftpd.conf:/etc/vsftpd.conf
+      - ./vsftpd.conf:/opt/BackupPro/vsftpd.conf
     ports:
       - "2100:21"
       - "21100-21110:21100-21110"  # Porta passiva
