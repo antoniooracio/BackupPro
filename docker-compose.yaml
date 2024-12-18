@@ -51,7 +51,7 @@ services:
       - ./backups:/opt/BackupPro/backups
       - ./vsftpd.conf:/etc/vsftpd.conf
     ports:
-      - "21:21"
+      - "2100:21"
     restart: always
 #  rabbitmq:
 #    image: rabbitmq:3-management
