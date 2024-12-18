@@ -93,8 +93,11 @@ def enviar_arquivo_ftp(caminho_arquivo, nome_equipamento):
 
     from ftplib import FTP
 
+    # Criando uma instância do cliente FTP
+    ftp = FTP()
+
     # Conectando ao servidor FTP
-    ftp = FTP(servidor_ftp)
+    ftp = FTP(servidor_ftp, str(porta_ftp))
     ftp.login(usuario_ftp, senha_ftp)
 
     # Verifica se o diretório existe e se não, cria o diretório
