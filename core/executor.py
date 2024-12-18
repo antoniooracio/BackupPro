@@ -129,7 +129,7 @@ def atualizar_ultimo_backup(equipamento_id):
     """
     Atualiza o campo 'ultimo_backup' do equipamento via API.
     """
-    url = f"{API_URL}/equipments/{equipamento_id}/update_backup/"
+    url = f"/equipments/{equipamento_id}/update_backup/"
     data_atual = datetime.now().isoformat()  # Formato ISO 8601
     payload = {"ultimo_backup": data_atual}
 
