@@ -15,6 +15,7 @@ from django.http import Http404, FileResponse
 from django.conf import settings
 from .models import Equipment, BackupFile, Enterprise
 from .serializers import EquipmentSerializer, EnterpriseSerializer
+from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from pathlib import Path
 
@@ -37,12 +38,23 @@ class BackupUploadView(APIView):
 
 
 # View para atualizar o último backup
-class UpdateUltimoBackupView(APIView):
-    def patch(self, request, equipamento_id, format=None):
-        equipamento = get_object_or_404(Equipment, id=equipamento_id)
-        equipamento.ultimo_backup = timezone.now()
-        equipamento.save()
-        return Response({"message": "Data do último backup atualizada."}, status=status.HTTP_200_OK)
+@api_view(['PATCH'])
+def update_backup(request, equipamento_id):
+    """
+    Atualiza o campo 'UltimoBackup' do equipamento com a data/hora fornecida na requisição.
+    """
+    try:
+        equipamento = Equipment.objects.get(id=equipamento_id)  # Busca o equipamento pelo ID
+        data_backup = request.data.get("ultimo_backup")  # Obtém o campo 'ultimo_backup' da requisição
+        if data_backup:
+            # Converte o formato de data/hora e atualiza o campo
+            equipamento.UltimoBackup = parse_datetime(data_backup)
+            equipamento.save()
+            return Response({"mensagem": "Último backup atualizado com sucesso."}, status=200)
+        else:
+            return Response({"erro": "Campo 'ultimo_backup' não fornecido."}, status=400)
+    except Equipment.DoesNotExist:
+        return Response({"erro": "Equipamento não encontrado."}, status=404)
 
 
 class EquipmentViewSet(viewsets.ModelViewSet):

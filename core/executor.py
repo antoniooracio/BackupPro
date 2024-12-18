@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent
 PASTA_BACKUP = BASE_DIR / "backups"
 os.makedirs(PASTA_BACKUP, exist_ok=True)
 
+
 # Função para verificar se o backup já foi feito hoje
 def backup_hoje_realizado():
     """Verifica se o backup já foi feito hoje, armazenando a data do último backup em um arquivo"""
@@ -38,12 +39,17 @@ def backup_hoje_realizado():
                 return True
     return False
 
-# Função para atualizar a data do último backup
+
+# Atualiza o controle local
 def atualizar_data_ultimo_backup():
-    """Atualiza a data do último backup realizado no arquivo"""
+    """
+    Atualiza a data do último backup realizado localmente no arquivo.
+    """
     data_hoje = datetime.now().date()
     with open("ultimo_backup.txt", 'w') as f:
         f.write(str(data_hoje))
+    print(f"Data do último backup atualizada localmente para: {data_hoje}")
+
 
 # Salva o backup no diretório local
 def salvar_backup(nome_equipamento, conteudo_backup):
@@ -58,6 +64,7 @@ def salvar_backup(nome_equipamento, conteudo_backup):
 
     print(f"Backup salvo em: {caminho_arquivo}")
     return caminho_arquivo
+
 
 # Envia o arquivo de backup via API
 def enviar_arquivo_api(nome_equipamento, caminho_arquivo):
@@ -86,10 +93,10 @@ def enviar_arquivo_ftp(caminho_arquivo, nome_equipamento):
     Envia o arquivo de backup via FTP para o servidor.
     """
     servidor_ftp = "177.52.216.4"  # IP do servidor FTP
-    usuario_ftp = "BackuPro"
+    usuario_ftp = "backup"
     senha_ftp = "Anas2108@@"
-    pasta_destino = f"/opt/BackupPro/backups/{nome_equipamento}/"  # Caminho correto no servidor FTP
-    porta_ftp = 2100  # Porta do FTP
+    pasta_destino = f"/{nome_equipamento}/"  # Caminho correto no servidor FTP
+    porta_ftp = 21  # Porta do FTP
 
     from ftplib import FTP
 
@@ -97,7 +104,7 @@ def enviar_arquivo_ftp(caminho_arquivo, nome_equipamento):
     ftp = FTP()
 
     # Conectando ao servidor FTP
-    ftp = FTP(servidor_ftp, str(porta_ftp))
+    ftp = FTP(servidor_ftp)
     ftp.login(usuario_ftp, senha_ftp)
 
     # Verifica se o diretório existe e se não, cria o diretório
@@ -123,11 +130,18 @@ def atualizar_ultimo_backup(equipamento_id):
     Atualiza o campo 'ultimo_backup' do equipamento via API.
     """
     url = f"{API_URL}/equipments/{equipamento_id}/update_backup/"
-    response = requests.patch(url, headers=HEADERS)
-    if response.status_code == 200:
-        print(f"Último backup atualizado para o equipamento {equipamento_id}.")
-    else:
-        print(f"Erro ao atualizar último backup: {response.status_code}")
+    data_atual = datetime.now().isoformat()  # Formato ISO 8601
+    payload = {"ultimo_backup": data_atual}
+
+    try:
+        response = requests.patch(url, headers=HEADERS, json=payload)
+        if response.status_code == 200:
+            print(f"Último backup atualizado com sucesso para o equipamento {equipamento_id}. Data enviada: {data_atual}")
+        else:
+            print(f"Erro ao atualizar último backup: {response.status_code} - {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao enviar atualização do último backup: {e}")
+
 
 # Função para realizar o backup de um equipamento
 def realizar_backup(equipamento):
@@ -153,6 +167,7 @@ def realizar_backup(equipamento):
             # Envia o arquivo via FTP
             enviar_backup(equipamento.id, caminho_arquivo, equipamento.descricao)  # Passando nome do equipamento
             atualizar_ultimo_backup(equipamento.id)  # Atualiza status no servidor
+            atualizar_data_ultimo_backup()  # Atualiza o controle local
         else:
             print(f"Erro: Resposta vazia para o equipamento {equipamento.descricao}.")
     except Exception as e:
