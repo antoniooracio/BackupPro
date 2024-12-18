@@ -7,6 +7,7 @@ from rest_framework import viewsets, generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import FileUploadParser
@@ -144,7 +145,15 @@ def download_backup(request, equipamento_id, arquivo):
     return FileResponse(open(arquivo_path, 'rb'), as_attachment=True, filename=arquivo)
 
 
-
+class UpdateUltimoBackupView(APIView):
+    def patch(self, request, equipamento_id, format=None):
+        equipamento = get_object_or_404(Equipment, id=equipamento_id)
+        data_backup = request.data.get("ultimo_backup")
+        if data_backup:
+            equipamento.UltimoBackup = parse_datetime(data_backup)
+            equipamento.save()
+            return Response({"mensagem": "Último backup atualizado com sucesso."}, status=HTTP_200_OK)
+        return Response({"erro": "Campo 'ultimo_backup' não fornecido."}, status=400)
 
 
 
