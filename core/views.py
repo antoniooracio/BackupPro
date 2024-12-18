@@ -7,7 +7,6 @@ from rest_framework import viewsets, generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import FileUploadParser
@@ -16,7 +15,6 @@ from django.http import Http404, FileResponse
 from django.conf import settings
 from .models import Equipment, BackupFile, Enterprise
 from .serializers import EquipmentSerializer, EnterpriseSerializer
-from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from pathlib import Path
 
@@ -39,23 +37,12 @@ class BackupUploadView(APIView):
 
 
 # View para atualizar o último backup
-@api_view(['PATCH'])
-def update_backup(request, equipamento_id):
-    """
-    Atualiza o campo 'UltimoBackup' do equipamento com a data/hora fornecida na requisição.
-    """
-    try:
-        equipamento = Equipment.objects.get(id=equipamento_id)  # Busca o equipamento pelo ID
-        data_backup = request.data.get("ultimo_backup")  # Obtém o campo 'ultimo_backup' da requisição
-        if data_backup:
-            # Converte o formato de data/hora e atualiza o campo
-            equipamento.UltimoBackup = parse_datetime(data_backup)
-            equipamento.save()
-            return Response({"mensagem": "Último backup atualizado com sucesso."}, status=200)
-        else:
-            return Response({"erro": "Campo 'ultimo_backup' não fornecido."}, status=400)
-    except Equipment.DoesNotExist:
-        return Response({"erro": "Equipamento não encontrado."}, status=404)
+class UpdateUltimoBackupView(APIView):
+    def patch(self, request, equipamento_id, format=None):
+        equipamento = get_object_or_404(Equipment, id=equipamento_id)
+        equipamento.ultimo_backup = timezone.now()
+        equipamento.save()
+        return Response({"message": "Data do último backup atualizada."}, status=status.HTTP_200_OK)
 
 
 class EquipmentViewSet(viewsets.ModelViewSet):
@@ -145,15 +132,7 @@ def download_backup(request, equipamento_id, arquivo):
     return FileResponse(open(arquivo_path, 'rb'), as_attachment=True, filename=arquivo)
 
 
-class UpdateUltimoBackupView(APIView):
-    def patch(self, request, equipamento_id, format=None):
-        equipamento = get_object_or_404(Equipment, id=equipamento_id)
-        data_backup = request.data.get("ultimo_backup")
-        if data_backup:
-            equipamento.UltimoBackup = parse_datetime(data_backup)
-            equipamento.save()
-            return Response({"mensagem": "Último backup atualizado com sucesso."}, status=HTTP_200_OK)
-        return Response({"erro": "Campo 'ultimo_backup' não fornecido."}, status=400)
+
 
 
 
