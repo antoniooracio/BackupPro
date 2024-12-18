@@ -16,7 +16,7 @@ from django.utils import timezone
 from pathlib import Path
 
 # Configurações da API
-API_URL = "http://177.52.216.4:8000/api"
+API_URL = "http://backuppro.vcnetwork.com.br:8000/api"
 TOKEN = "98c9cdee71132b4fbaa2b1a98577c786425a76fb"
 HEADERS = {"Authorization": f"Token {TOKEN}"}
 
@@ -94,7 +94,7 @@ def enviar_arquivo_ftp(caminho_arquivo, nome_equipamento):
     """
     servidor_ftp = "177.52.216.4"  # IP do servidor FTP
     usuario_ftp = "backup"
-    senha_ftp = "Anas2108@@"
+    senha_ftp = "Anas2108@@1"
     pasta_destino = f"/{nome_equipamento}/"  # Caminho correto no servidor FTP
     porta_ftp = 21  # Porta do FTP
 
@@ -151,6 +151,7 @@ def realizar_backup(equipamento):
     protocolo = equipamento.access_type.upper()
 
     try:
+        # Acessa o equipamento e realiza o backup
         resposta = acessar_equipamento(
             id=equipamento.id,
             ip=equipamento.ip,
@@ -163,11 +164,24 @@ def realizar_backup(equipamento):
         )
 
         if resposta:
+            # Salva o backup localmente
             caminho_arquivo = salvar_backup(equipamento.descricao, resposta)
-            # Envia o arquivo via FTP
-            enviar_backup(equipamento.id, caminho_arquivo, equipamento.descricao)  # Passando nome do equipamento
-            atualizar_ultimo_backup(equipamento.id)  # Atualiza status no servidor
-            atualizar_data_ultimo_backup()  # Atualiza o controle local
+
+            # Envia o backup via FTP
+            try:
+                enviar_backup(equipamento.id, caminho_arquivo, equipamento.descricao)
+            except Exception as e:
+                print(f"Erro ao enviar o arquivo para o FTP: {e}")
+
+            # Atualiza a data do último backup via API
+            try:
+                atualizar_ultimo_backup(equipamento.id)
+            except Exception as e:
+                print(f"Erro ao atualizar o último backup na API: {e}")
+
+            # Atualiza o controle local de backup
+            atualizar_data_ultimo_backup()
+
         else:
             print(f"Erro: Resposta vazia para o equipamento {equipamento.descricao}.")
     except Exception as e:
@@ -184,6 +198,7 @@ def executar_backups():
 
     for equipamento in equipamentos:
         realizar_backup(equipamento)
+
 
 # Obtém o horário agendado via API
 def obter_horario_backup():
@@ -220,7 +235,7 @@ def processar_backups():
         # Verifica se o backup já foi realizado hoje
        # if backup_hoje_realizado():
        #     print("Backup já realizado hoje. Aguardando amanhã...")
-       #     time.sleep(30)  # Aguardar 24 horas (86400 segundos) para o próximo dia
+       #     time.sleep(86400)  # Aguardar 24 horas (86400 segundos) para o próximo dia
        #     continue  # Reinicia o loop para verificar o horário do novo dia
         agora = datetime.now().strftime("%H:%M:%S")
         print(f"Horário atual: {agora}")
@@ -238,6 +253,7 @@ def processar_backups():
         else:
             print("Ainda não é o horário agendado. Aguardando...")
             time.sleep(30)
+
 
 if __name__ == "__main__":
     processar_backups()

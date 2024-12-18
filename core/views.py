@@ -76,6 +76,7 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         # Exemplo: Condicional para usar diferentes serializers (se aplicável)
         return EnterpriseSerializer
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def receber_backup(request, equipamento_id):
@@ -132,26 +133,25 @@ def download_backup(request, equipamento_id, arquivo):
     return FileResponse(open(arquivo_path, 'rb'), as_attachment=True, filename=arquivo)
 
 
-
-
-
-
-
-
 def index(request):
     return render(request, 'index.html')
+
 
 def contact(request):
     return render(request, 'contact.html')
 
+
 def enterprise(request):
     return render(request, 'enterprise.html')
+
 
 def manufacturer(request):
     return render(request, 'manufacturer.html')
 
+
 def modelEquipment(request):
     return render(request, 'modelEquipment.html')
+
 
 def arquivos_backup(request, equipamento_id):
     """
@@ -182,6 +182,7 @@ def arquivos_backup(request, equipamento_id):
         'query': query,
     })
 
+
 def listar_equipamentos(request):
     # Obtém a empresa do usuário logado
     empresa = request.user.empresa
@@ -190,35 +191,30 @@ def listar_equipamentos(request):
     # Renderiza a lista de equipamentos no template
     return render(request, 'equipamentos.html', {'equipamentos': equipamentos})
 
+
 def error404(request, ex):
     template = loader.get_template('404.html')
     return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=404)
+
 
 def error500(request):
     template = loader.get_template('500.html')
     return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=500)
 
-def download_backup(request, arquivo):
-    """
-    Permite o download de um arquivo de backup do sistema de arquivos.
-    """
-    # Extrai o nome do equipamento a partir do nome do arquivo
-    nome_equipamento = '_'.join(arquivo.split('_')[:-2])
 
-    # Caminho para a pasta de backups do equipamento
-    backup_dir = os.path.join(settings.BASE_DIR, 'backups', nome_equipamento)  # Pasta do equipamento
+def download_backup(request, arquivo):
+    # Caminho para a pasta de backups no servidor
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups')  # Pasta base de backups
     arquivo_path = os.path.join(backup_dir, arquivo)
 
     # Mensagens de depuração
-    print(f"Nome do equipamento: {nome_equipamento}")
-    print(f"Caminho do diretório de backups: {backup_dir}")
     print(f"Caminho completo do arquivo: {arquivo_path}")
 
     # Verifica se o arquivo existe no diretório
-    if os.path.exists(arquivo_path):
+    if os.path.isfile(arquivo_path):  # Verifica se é um arquivo
         with open(arquivo_path, 'rb') as f:
             response = HttpResponse(f.read(), content_type='application/octet-stream')
-            response['Content-Disposition'] = f'attachment; filename="{arquivo}"'
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(arquivo)}"'
             return response
     else:
         return HttpResponse(f"Arquivo não encontrado: {arquivo_path}", status=404)
