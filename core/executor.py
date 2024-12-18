@@ -16,7 +16,7 @@ from django.utils import timezone
 from pathlib import Path
 
 # Configurações da API
-API_URL = "http://177.52.216.4/api"
+API_URL = "http://177.52.216.4:8000/api"
 TOKEN = "98c9cdee71132b4fbaa2b1a98577c786425a76fb"
 HEADERS = {"Authorization": f"Token {TOKEN}"}
 
