@@ -76,6 +76,7 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         # Exemplo: Condicional para usar diferentes serializers (se aplicável)
         return EnterpriseSerializer
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def receber_backup(request, equipamento_id):

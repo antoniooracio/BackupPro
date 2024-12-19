@@ -20,8 +20,6 @@ router.register(r'equipments', EquipmentViewSet)
 router.register(r'enterprises', EnterpriseViewSet)
 
 
-
-
 urlpatterns =[
 
     path('admin/', admin.site.urls),

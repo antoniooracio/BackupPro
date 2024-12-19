@@ -118,9 +118,11 @@ class Equipment(models.Model):
     def __str__(self):
         return f'{self.descricao} {self.ip} (ID: {self.id})'
 
+
     class Meta:
         verbose_name = "Equipamento"
         verbose_name_plural = "Equipamentos"
+
 
     def executar_comando(self):
         """
