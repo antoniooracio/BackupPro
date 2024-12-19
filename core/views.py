@@ -83,10 +83,14 @@ def get_enterprise(request):
     Retorna a empresa associada ao usuário autenticado.
     """
     try:
-        # Supondo que o usuário esteja relacionado a uma empresa
-        enterprise = request.user.enterprise  # Certifique-se de que existe essa relação
-        return Response({"id": enterprise.id, "nome": enterprise.nome})
+        # Usar o related_name definido na model (empresa)
+        enterprise = request.user.empresa  # Acessando a relação com `related_name`
+        return Response({
+            "id": str(enterprise.id),  # Convertendo UUID para string, se necessário
+            "nome": enterprise.nome
+        })
     except AttributeError:
+        # Se o usuário não estiver associado a uma empresa
         return Response({"erro": "Usuário não associado a uma empresa."}, status=400)
 
 
