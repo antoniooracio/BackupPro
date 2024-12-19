@@ -11,7 +11,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DJANGO_SETTINGS_MODULE=Backup.settings
       - PYTHONUNBUFFERED=1
@@ -20,6 +20,8 @@ services:
       - DB_PASSWORD=Anas2108@@
       - DB_HOST=mariadb
       - DB_PORT=33006
+      - TZ=America/Sao_Paulo
+
     depends_on:
       - mariadb
       #- rabbitmq
@@ -54,30 +56,30 @@ services:
 #      - "2100:21"
 #      - "21100-21110:21100-21110"  # Porta passiva
 #    restart: always
-#  rabbitmq:
-#    image: rabbitmq:3-management
-#    ports:
-#      - "5672:5672"
-#      - "15672:15672"
-#    environment:
-#      RABBITMQ_DEFAULT_USER: julio
-#      RABBITMQ_DEFAULT_PASS: backuppro
-#
-#  celery:
-#    build: .
-#    command: celery -A Backup worker --loglevel=info
-#    volumes:
-#      - .:/app
-#    depends_on:
-#      - rabbitmq
-#
-#  celery_beat:
-#    build: .
-#    command: celery -A Backup beat --loglevel=info
-#    volumes:
-#      - .:/app
-#    depends_on:
-#      - rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: julio
+      RABBITMQ_DEFAULT_PASS: backuppro
+
+  celery:
+    build: .
+    command: celery -A Backup worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - rabbitmq
+
+  celery_beat:
+    build: .
+    command: celery -A Backup beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - rabbitmq
 
 volumes:
   db_data:

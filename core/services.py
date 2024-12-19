@@ -113,6 +113,8 @@ def agendar_backup(empresa):
         PeriodicTask.objects.create(
             crontab=schedule,
             name=f"backup_empresa_{empresa.id}",
-            task="Backup.tasks.realizar_backup",
-            args=json.dumps([empresa.id]),  # Passar o ID da empresa como argumento
+            task="core.tasks.tarefa_exemplo",
+            args=json.dumps([empresa.nome]),  # Passar o ID da empresa como argumento
         )
+
+        return print(f"Backup agendado para {empresa.nome}.")

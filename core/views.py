@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.template import loader
 from django.core.paginator import Paginator
+from django_filters.rest_framework import DjangoFilterBackend
 import os
 from rest_framework import viewsets, generics, status
 from rest_framework.decorators import api_view, permission_classes
@@ -17,6 +18,9 @@ from .models import Equipment, BackupFile, Enterprise
 from .serializers import EquipmentSerializer, EnterpriseSerializer
 from django.utils import timezone
 from pathlib import Path
+
+from core.AcessoEquipamentoSSH import acessar_equipamento
+
 
 # View para upload de arquivos
 class BackupUploadView(APIView):
@@ -52,13 +56,18 @@ class EquipmentViewSet(viewsets.ModelViewSet):
     serializer_class = EquipmentSerializer
     queryset = Equipment.objects.all()
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['backup',]
 
     def get_queryset(self):
         """
         Filtra os equipamentos para mostrar apenas os da empresa do usuário logado.
         """
         empresa = self.request.user.empresa
-        return empresa.get_equipamentos()
+        equipamentos = empresa.get_equipamentos()
+        if equipamentos.exists():
+            return equipamentos
+        return []
 
 
 class EnterpriseViewSet(viewsets.ModelViewSet):
@@ -75,6 +84,41 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         """
         # Exemplo: Condicional para usar diferentes serializers (se aplicável)
         return EnterpriseSerializer
+
+
+class AcessarEquipamentoView(APIView):
+    """
+    API para acessar equipamentos e executar comandos.
+    """
+
+    def post(self, request, *args, **kwargs):
+        # Obtendo parâmetros da requisição
+        try:
+            id = request.data.get('id')
+            ip = request.data.get('ip')
+            usuario = request.data.get('usuario')
+            senha = request.data.get('senha')
+            porta = request.data.get('porta')
+            comando = request.data.get('comando')
+            nome_equipamento = request.data.get('nome_equipamento')
+            protocolo = request.data.get('protocolo')
+            tempo_maximo = request.data.get('tempo_maximo')
+
+            # Validando parâmetros
+            if not all([id, ip, usuario, senha, porta, comando, nome_equipamento]):
+                raise ValidationError("Todos os parâmetros são obrigatórios.")
+
+            # Chamando a função de acessar o equipamento
+            resultado = acessar_equipamento(id, ip, usuario, senha, porta, comando, nome_equipamento, protocolo,
+                                            tempo_maximo)
+
+            # Retornando a resposta
+            return Response({"resultado": resultado}, status=status.HTTP_200_OK)
+
+        except ValidationError as ve:
+            return Response({"detail": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"detail": f"Ocorreu um erro: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
