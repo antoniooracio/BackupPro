@@ -11,6 +11,7 @@ from .views import index, contact, modelEquipment, enterprise, manufacturer
 from django.conf.urls.static import static
 from django.conf import settings
 from . import views
+from core.views import get_enterprise
 
 from rest_framework.routers import DefaultRouter
 from core.views import EquipmentViewSet, EnterpriseViewSet, arquivos_backup, download_backup, BackupUploadView, UpdateUltimoBackupView
@@ -40,7 +41,7 @@ urlpatterns =[
     path('api/equipments/<int:equipamento_id>/update_backup/', UpdateUltimoBackupView.as_view(), name='update_backup'),
     path('api/backups/<int:equipamento_id>/', receber_backup, name='receber_backup'),
     path('api/service/acessar_equipamento', acessar_equipamento, name='acessar_equipamento'),
-
+    path('api/enterprise/', get_enterprise, name='get_enterprise'),
     path('api/', include(router.urls)),
     path('api/equipments/<uuid:equipamento_id>/backups/', arquivos_backup, name='arquivos-backup'),
     path('api/equipments/<uuid:equipamento_id>/backups/<str:arquivo>/', download_backup, name='download-backup'),

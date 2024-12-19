@@ -77,6 +77,19 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         return EnterpriseSerializer
 
 
+@api_view(['GET'])
+def get_enterprise(request):
+    """
+    Retorna a empresa associada ao usuário autenticado.
+    """
+    try:
+        # Supondo que o usuário esteja relacionado a uma empresa
+        enterprise = request.user.enterprise  # Certifique-se de que existe essa relação
+        return Response({"id": enterprise.id, "nome": enterprise.nome})
+    except AttributeError:
+        return Response({"erro": "Usuário não associado a uma empresa."}, status=400)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def receber_backup(request, equipamento_id):

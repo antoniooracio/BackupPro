@@ -26,6 +26,20 @@ PASTA_BACKUP = BASE_DIR / "backups"
 os.makedirs(PASTA_BACKUP, exist_ok=True)
 
 
+def obter_empresa_associada():
+    """
+    Retorna o ID da empresa associada ao token.
+    """
+    url = f"{API_URL}/enterprise/"  # Endpoint para recuperar a empresa associada ao token
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code == 200:
+        empresa = response.json()
+        return empresa.get("id")  # Assume que o ID da empresa está no campo 'id'
+    else:
+        print(f"Erro ao obter empresa associada: {response.status_code} - {response.text}")
+        return None
+
+
 # Função para verificar se o backup já foi feito hoje
 def backup_hoje_realizado():
     """Verifica se o backup já foi feito hoje com base na data e hora armazenadas."""
@@ -196,9 +210,15 @@ def realizar_backup(equipamento):
 
 # Função para executar backups de todos os equipamentos
 def executar_backups():
-    equipamentos = Equipment.objects.filter(backup="Sim")
+    empresa_id = obter_empresa_associada()
+    if not empresa_id:
+        print("Não foi possível determinar a empresa associada ao token.")
+        return
+
+    # Filtra equipamentos da empresa correspondente
+    equipamentos = Equipment.objects.filter(backup="Sim", empresa_id=empresa_id)
     if not equipamentos:
-        print("Nenhum equipamento ativo para backup.")
+        print("Nenhum equipamento ativo para backup nesta empresa.")
         return
 
     for equipamento in equipamentos:
