@@ -76,7 +76,6 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
         # Exemplo: Condicional para usar diferentes serializers (se aplicável)
         return EnterpriseSerializer
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def receber_backup(request, equipamento_id):
@@ -123,13 +122,26 @@ def download_backup(request, equipamento_id, arquivo):
     """
     Faz o download de um arquivo de backup.
     """
+    # Busca o equipamento no banco de dados pelo ID
     equipamento = get_object_or_404(Equipment, id=equipamento_id)
-    backup_dir = os.path.join(settings.BASE_DIR, 'backups', equipamento.descricao)
+
+    # O nome do equipamento vem do campo `descricao`
+    nome_equipamento = equipamento.descricao
+
+    # Caminho para a pasta de backups do equipamento
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups', nome_equipamento)
     arquivo_path = os.path.join(backup_dir, arquivo)
 
-    if not os.path.exists(arquivo_path):
-        raise Http404(f"Arquivo {arquivo} não encontrado.")
+    # Mensagens de depuração
+    print(f"Nome do equipamento do banco: {nome_equipamento}")
+    print(f"Caminho do diretório de backups: {backup_dir}")
+    print(f"Caminho completo do arquivo: {arquivo_path}")
 
+    # Verifica se o arquivo existe no diretório
+    if not os.path.exists(arquivo_path):
+        return HttpResponse(f"Arquivo não encontrado: {arquivo_path}", status=404)
+
+    # Retorna o arquivo como anexo para download
     return FileResponse(open(arquivo_path, 'rb'), as_attachment=True, filename=arquivo)
 
 
@@ -202,19 +214,31 @@ def error500(request):
     return HttpResponse(content=template.render(), content_type='text/html; charset=utf8', status=500)
 
 
-def download_backup(request, arquivo):
-    # Caminho para a pasta de backups no servidor
-    backup_dir = os.path.join(settings.BASE_DIR, 'backups')  # Pasta base de backups
+def download_backup(request, equipamento_id, arquivo):
+    """
+    Permite o download de um arquivo de backup do sistema de arquivos.
+    """
+    # Extrai o nome do equipamento a partir do nome do arquivo
+    # Busca o equipamento no banco de dados pelo ID
+    equipamento = get_object_or_404(Equipment, id=equipamento_id)
+
+    # O nome do equipamento vem do campo `descricao`
+    nome_equipamento = equipamento.descricao
+
+    # Caminho para a pasta de backups do equipamento
+    backup_dir = os.path.join(settings.BASE_DIR, 'backups', nome_equipamento)  # Pasta do equipamento
     arquivo_path = os.path.join(backup_dir, arquivo)
 
     # Mensagens de depuração
+    print(f"Nome do equipamento do banco: {nome_equipamento}")
+    print(f"Caminho do diretório de backups: {backup_dir}")
     print(f"Caminho completo do arquivo: {arquivo_path}")
 
     # Verifica se o arquivo existe no diretório
-    if os.path.isfile(arquivo_path):  # Verifica se é um arquivo
+    if os.path.exists(arquivo_path):
         with open(arquivo_path, 'rb') as f:
             response = HttpResponse(f.read(), content_type='application/octet-stream')
-            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(arquivo)}"'
+            response['Content-Disposition'] = f'attachment; filename="{arquivo}"'
             return response
     else:
         return HttpResponse(f"Arquivo não encontrado: {arquivo_path}", status=404)

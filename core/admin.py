@@ -76,7 +76,7 @@ class EnterpriseListFilter(SimpleListFilter):
 @admin.register(Equipment)
 class equipmentAdmin(admin.ModelAdmin):
     search_fields = ('descricao', 'ip')  # Campo de busca no Admin
-    list_display = ('descricao', 'ip_porta', 'usuarioacesso', 'format_ultimo_backup',
+    list_display = ('descricao', 'ip_porta', 'usuarioacesso',
                     'enterprise', 'status_backup', 'backup', 'arquivos_link')
     list_filter = (EnterpriseListFilter, )  # Filtro personalizado
     actions = [executar_comando_via_ssh]

@@ -31,7 +31,11 @@ urlpatterns =[
     path('fabricantes', manufacturer),
     path('equipamentos/', views.listar_equipamentos, name='listar_equipamentos'),
     path('arquivos_backup/<int:equipamento_id>/', views.arquivos_backup, name='arquivos_backup'),
-    path('download_backup/<str:arquivo>/', views.download_backup, name='download_backup'),
+    path(
+        'download_backup/<int:equipamento_id>/<str:arquivo>/',
+        views.download_backup,
+        name='download_backup'
+    ),
 
     path('api/backup/<int:equipamento_id>/', BackupUploadView.as_view(), name='upload_backup'),
     path('api/equipments/<int:equipamento_id>/update_backup/', UpdateUltimoBackupView.as_view(), name='update_backup'),
