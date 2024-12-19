@@ -40,7 +40,7 @@ class BackupUploadView(APIView):
 class UpdateUltimoBackupView(APIView):
     def patch(self, request, equipamento_id, format=None):
         equipamento = get_object_or_404(Equipment, id=equipamento_id)
-        equipamento.ultimo_backup = timezone.now()
+        equipamento.UltimoBackup = timezone.now()
         equipamento.save()
         return Response({"message": "Data do último backup atualizada."}, status=status.HTTP_200_OK)
 
