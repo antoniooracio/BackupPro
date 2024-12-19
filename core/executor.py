@@ -1,6 +1,6 @@
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import django
 import sys
@@ -16,7 +16,7 @@ from django.utils import timezone
 from pathlib import Path
 
 # Configurações da API
-API_URL = "http://backuppro.vcnetwork.com.br:8000/api"
+API_URL = "http://backuppro.vcnetwork.com.br:8001/api"
 TOKEN = "98c9cdee71132b4fbaa2b1a98577c786425a76fb"
 HEADERS = {"Authorization": f"Token {TOKEN}"}
 
@@ -28,14 +28,20 @@ os.makedirs(PASTA_BACKUP, exist_ok=True)
 
 # Função para verificar se o backup já foi feito hoje
 def backup_hoje_realizado():
-    """Verifica se o backup já foi feito hoje, armazenando a data do último backup em um arquivo"""
-    data_hoje = datetime.now().date()
+    """Verifica se o backup já foi feito hoje com base na data e hora armazenadas."""
     arquivo_backup = "ultimo_backup.txt"
 
     if os.path.exists(arquivo_backup):
         with open(arquivo_backup, 'r') as f:
-            data_ultimo_backup = f.read().strip()
-            if data_ultimo_backup == str(data_hoje):
+            ultima_execucao = f.read().strip()
+
+        if ultima_execucao:
+            ultima_execucao = datetime.fromisoformat(ultima_execucao)  # Converte para datetime
+            agora = datetime.now()
+
+            # Calcula a diferença entre o último backup e o horário atual
+            diferenca = agora - ultima_execucao
+            if diferenca.total_seconds() < 86400:  # Menos de 24 horas
                 return True
     return False
 
@@ -94,7 +100,7 @@ def enviar_arquivo_ftp(caminho_arquivo, nome_equipamento):
     """
     servidor_ftp = "177.52.216.4"  # IP do servidor FTP
     usuario_ftp = "backup"
-    senha_ftp = "Anas2108@@1"
+    senha_ftp = "Anas2108@@"
     pasta_destino = f"/{nome_equipamento}/"  # Caminho correto no servidor FTP
     porta_ftp = 21  # Porta do FTP
 
@@ -188,7 +194,6 @@ def realizar_backup(equipamento):
         print(f"Erro ao realizar backup: {e}")
 
 
-
 # Função para executar backups de todos os equipamentos
 def executar_backups():
     equipamentos = Equipment.objects.filter(backup="Sim")
@@ -232,11 +237,21 @@ def processar_backups():
 
     print(f"Backup agendado para: {horario_agendado}")
     while True:
-        # Verifica se o backup já foi realizado hoje
-       # if backup_hoje_realizado():
-       #     print("Backup já realizado hoje. Aguardando amanhã...")
-       #     time.sleep(86400)  # Aguardar 24 horas (86400 segundos) para o próximo dia
-       #     continue  # Reinicia o loop para verificar o horário do novo dia
+        if backup_hoje_realizado():
+            print("Backup já realizado hoje. Aguardando próximo horário...")
+            with open("ultimo_backup.txt", 'r') as f:
+                ultima_execucao = datetime.fromisoformat(f.read().strip())
+
+            agora = datetime.now()
+            proximo_horario = ultima_execucao + timedelta(seconds=86400)  # Próximo horário após 24 horas
+
+            # Calcula o tempo restante até o próximo horário
+            diferenca = (proximo_horario - agora).total_seconds()
+            if diferenca > 0:
+                print(f"Esperando {diferenca // 3600} horas e {diferenca % 3600 // 60} minutos até o próximo backup...")
+                time.sleep(diferenca)
+            continue
+
         agora = datetime.now().strftime("%H:%M:%S")
         print(f"Horário atual: {agora}")
 
