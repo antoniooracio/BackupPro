@@ -216,7 +216,7 @@ def executar_backups():
         return
 
     # Filtra equipamentos da empresa correspondente
-    equipamentos = Equipment.objects.filter(backup="Sim", empresa_id=empresa_id)
+    equipamentos = Equipment.objects.filter(backup="Sim", enterprise_id=empresa_id)
     if not equipamentos:
         print("Nenhum equipamento ativo para backup nesta empresa.")
         return
