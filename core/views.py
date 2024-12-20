@@ -80,14 +80,18 @@ class EnterpriseViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def get_enterprise(request):
     """
-    Retorna a empresa associada ao usuário autenticado.
+    Retorna a empresa associada ao usuário autenticado com os campos desejados.
     """
     try:
         # Usar o related_name definido na model (empresa)
         enterprise = request.user.empresa  # Acessando a relação com `related_name`
         return Response({
-            "id": str(enterprise.id),  # Convertendo UUID para string, se necessário
-            "nome": enterprise.nome
+            "id": str(enterprise.id),
+            "nome": enterprise.nome,
+            "cidade": enterprise.cidade,
+            "uf": enterprise.uf,
+            "ativo": enterprise.ativo,
+            "horario_backup": enterprise.horario_backup.strftime("%H:%M:%S") if enterprise.horario_backup else None
         })
     except AttributeError:
         # Se o usuário não estiver associado a uma empresa
